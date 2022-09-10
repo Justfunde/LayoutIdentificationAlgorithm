@@ -1,36 +1,33 @@
-#pragma once
-//
-//  base64 encoding and decoding with C++.
-//  Version: 2.rc.08 (release candidate)
-//
-
-#ifndef BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A
-#define BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A
+/**
+* @file     Base64.h
+* @brief    Объявление функций для работы с Base64
+* @ingroup  BDMAPI
+*/
+#ifndef __BASE_64_H__
+#define __BASE_64_H__
 
 #include <string>
 
-#if __cplusplus >= 201703L
-#include <string_view>
-#endif  // __cplusplus >= 201703L
 
-std::string base64_encode(std::string const& s, bool url = false);
-std::string base64_encode_pem(std::string const& s);
-std::string base64_encode_mime(std::string const& s);
+/*! Enum для определения класса Base64*/
+enum class Base64EncodeType
+{
+   standard,
+   url,
+   radix64,
+   mime,
+   pem
+};
 
-std::string base64_decode(std::string const& s, bool remove_linebreaks = false);
-std::string base64_encode(unsigned char const*, size_t len, bool url = false);
 
-#if __cplusplus >= 201703L
-//
-// Interface with std::string_view rather than const std::string&
-// Requires C++17
-// Provided by Yannic Bonenberger (https://github.com/Yannic)
-//
-std::string base64_encode(std::string_view s, bool url = false);
-std::string base64_encode_pem(std::string_view s);
-std::string base64_encode_mime(std::string_view s);
+std::string
+Base64Encode(
+   const std::string& Buf2Encode,
+   Base64EncodeType EncodingType);
 
-std::string base64_decode(std::string_view s, bool remove_linebreaks = false);
-#endif  // __cplusplus >= 201703L
+std::string
+Base64Decode(
+   const std::string &EncodedStr,
+   Base64EncodeType DecodingType);
 
-#endif /* BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A */
+#endif // !__BASE_64_H__

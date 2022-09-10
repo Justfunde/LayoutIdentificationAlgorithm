@@ -1,251 +1,326 @@
-﻿
-
+﻿/**
+* @file     Base64.c
+* @brief    Определение функций для работы с Base64
+* @ingroup  BDMAPI
+*/
 #include "Include/Base64.h"
-
-#include <algorithm>
 #include <stdexcept>
 
+static const char* g_Base64ClassicDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                                 "abcdefghijklmnopqrstuvwxyz"
+                                                 "0123456789"
+                                                 "+/" };///<Стандартный словарь
+
+static const char* g_Base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                              "abcdefghijklmnopqrstuvwxyz"
+                                              "0123456789"
+                                              "-_" }; ///<Словарь для URL сообщений
+
+
+constexpr size_t g_radixHashLen = 8;
+constexpr size_t g_pemStrLen = 64;
+constexpr size_t g_mimeStrLen = 76;
+
+
+#define CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen) ( ( ( (Buf2EncodeLen) * 4 / 3 + 3) < g_pemStrLen) ? ((Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + g_radixHashLen) : ( (Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + ((Buf2EncodeLen) * 4 / 3 + 2) / g_pemStrLen * 3))
+
+
+/**
+* @brief       Получение позиции символа в Base64
+* @param[in]   Symb    Символ
+* @retval      Позиция символа в закодированной Base64 последовательности
+**/
+static
+char
+InGetSymbPosition(
+   char Symb)
+{
+   //См схему соответствия "Символ - значение" в Base64
+   if (Symb >= 'A' && Symb <= 'Z') return Symb - 'A';
+   else if (Symb >= 'a' && Symb <= 'z') return Symb - 'a' + ('Z' - 'A') + 1;
+   else if (Symb >= '0' && Symb <= '9') return Symb - '0' + ('Z' - 'A') + ('z' - 'a') + 2;
+   else if (Symb == '+' || Symb == '-') return 62;
+   else if (Symb == '/' || Symb == '_') return 63;
+   else return -1;
+}
+
+static
+std::string
+InBase64Encode(
+   const char* Buf2Encode,
+   size_t  Buf2EncodeLen,
+   bool IsUrl)
+{
+    if (nullptr == Buf2Encode || 0 == Buf2EncodeLen ) { throw std::invalid_argument("Invalid buffer to encode"); }
+
+    std::string encodedStr;
+    encodedStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen));
+
+    char trailingChar = (IsUrl) ? '.' : '=';
+    const char* dictionary = (IsUrl) ? g_Base64UrlDictionary : g_Base64ClassicDictionary;
+
+    for (size_t i = 0; i < Buf2EncodeLen; i += 3)
+    {
+       encodedStr.push_back(dictionary[(Buf2Encode[i] & 0xFC) >> 2]);
+       if (i + 1 < Buf2EncodeLen)
+       {
+          encodedStr.push_back(dictionary[((Buf2Encode[i] & 0x03) << 4) | ((Buf2Encode[i + 1] & 0xF0) >> 4)]);
+          if (i + 2 < Buf2EncodeLen)
+          {
+             encodedStr.push_back(dictionary[((Buf2Encode[i + 1] & 0x0F) << 2) | ((Buf2Encode[i + 2] & 0xC0) >> 6)]);
+             encodedStr.push_back(dictionary[(Buf2Encode[i + 2] & 0x3F)]);
+          }
+          else
+          {
+             encodedStr.push_back(dictionary[((Buf2Encode[i + 1] & 0x0F) << 2)]);
+             encodedStr.push_back(trailingChar);
+          }
+       }
+       else
+       {
+          encodedStr.push_back(dictionary[((Buf2Encode[i] & 0x03) << 4)]);
+          encodedStr.push_back(trailingChar);
+          encodedStr.push_back(trailingChar);
+       }
+    }
+    return encodedStr;
+}
+
+
+static
+std::string
+InBase64StandardDecode(
+    const std::string &EncodedStr)
+{
+    if (0 == EncodedStr.size() ) { throw std::invalid_argument("Invalid buffer to decode"); }
+    
+    std::string decodedStr;
+    decodedStr.reserve(EncodedStr.length());
+
+    size_t j = 0;
+    for (size_t i = 0 ; i < EncodedStr.length(); i += 4)
+    {
+       decodedStr[j] = InGetSymbPosition(EncodedStr[i]) << 2;
+       decodedStr[j++] |= (InGetSymbPosition(EncodedStr[i + 1]) >> 4);
+       if ('=' != EncodedStr[i + 2] && '.' != EncodedStr[i + 2])
+       {
+          decodedStr[j] = (InGetSymbPosition(EncodedStr[i + 1]) & 0x0F) << 4;
+          decodedStr[j++] |= (InGetSymbPosition(EncodedStr[i + 2]) & 0x3C) >> 2;
+          if ('=' != EncodedStr[i + 3] && '.' != EncodedStr[i + 3])
+          {
+             decodedStr[j] = (InGetSymbPosition(EncodedStr[i + 2]) & 0x03) << 6;
+             decodedStr[j++] |= InGetSymbPosition(EncodedStr[i + 3]) & 0x3F;
+          }
+          else break;
+       }
+       else break;
+    }
+    decodedStr.shrink_to_fit();
+    return decodedStr;
+}
+
+
+static
+std::string
+InBase64DecodeWithSeparators(
+  std::string EncodedStr)
+{
+    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\n'));
+    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\r'));
+    return InBase64StandardDecode(EncodedStr);
+}
+
+static
+std::string
+InBase64EncodeWithSeparator(
+   const char* Buf2Encode,
+   size_t  Buf2EncodeLen,
+   const std::string &SeparatorStr,
+   size_t EachStrLen)
+{
+    if (0 == SeparatorStr.length() || 0 == EachStrLen) { throw std::invalid_argument("Invalid separator encode parameters"); }
+    
+    std::string encodedStr =  InBase64Encode(Buf2Encode,Buf2EncodeLen,false);
+
+    for (size_t i = 1 , additionalOffset = 0; i < encodedStr.length() / EachStrLen + 1; additionalOffset+= SeparatorStr.length())
+    {
+        encodedStr.insert(i * EachStrLen + additionalOffset, SeparatorStr);
+    }
+    return encodedStr;
+}
+
+static
+std::string
+InBase64EncodePem(
+  const std::string &Str2Encode)
+{
+    return InBase64EncodeWithSeparator(Str2Encode.c_str(),Str2Encode.length(), "\r\n", g_pemStrLen);
+}
+
+
+std::string
+InBase64EncodeMime(
+const std::string &Str2Encode)
+{
+   return InBase64EncodeWithSeparator(Str2Encode.c_str(),Str2Encode.length(), "\r\n", g_mimeStrLen);
+}
+
+
+///**
+//* @brief           Рассчет CRC32 хеш суммы от буфера
+//* @param[in]      Buf               Буфер
+//* @param[in]      BufSize           Размер буфера
+//* @param[out]     Crc32CheckSum     CRC32 hash
+//* @retval         status Статус операции
+//**/
+//static
+//BDM_STATUS
+//InCalcCrc32CheckSum(
+//   IN UINT8*   Buf,
+//   IN UINT32   BufSize,
+//   OUT UINT32* Crc32CheckSum)
+//{
+//   BDM_STATUS status = BDM_SUCCESS;
+//   do
+//   {
+//      if (NULL == Buf || 0 == BufSize || NULL == Crc32CheckSum) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
 //
-// Depending on the url parameter in base64_chars, one of
-// two sets of base64 characters needs to be chosen.
-// They differ in their last two characters.
+//      BDM_HASH_PRM hashPrm = { TRUE };
+//      BDM_HASH_32_CRC32* crcData = BdmCreateHashProtocol(BDM_HASH_32_CRC32_SIG, PROP_HASH_CRC32, &hashPrm, sizeof(BDM_HASH_PRM));
+//      if (crcData == NULL) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
+//      BDM_HASH* crc = &crcData->VTable;
 //
-static const char* base64_chars[2] = {
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789"
-             "+/",
-
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789"
-             "-_" };
-
-static unsigned int pos_of_char(const unsigned char chr) {
-    //
-    // Return the position of chr within base64_encode()
-    //
-
-    if (chr >= 'A' && chr <= 'Z') return chr - 'A';
-    else if (chr >= 'a' && chr <= 'z') return chr - 'a' + ('Z' - 'A') + 1;
-    else if (chr >= '0' && chr <= '9') return chr - '0' + ('Z' - 'A') + ('z' - 'a') + 2;
-    else if (chr == '+' || chr == '-') return 62; // Be liberal with input and accept both url ('-') and non-url ('+') base 64 characters (
-    else if (chr == '/' || chr == '_') return 63; // Ditto for '/' and '_'
-    else
-        //
-        // 2020-10-23: Throw std::exception rather than const char*
-        //(Pablo Martin-Gomez, https://github.com/Bouska)
-        //
-        throw std::runtime_error("Input is not valid base64-encoded data.");
-}
-
-static std::string insert_linebreaks(std::string str, size_t distance) {
-    //
-    // Provided by https://github.com/JomaCorpFX, adapted by me.
-    //
-    if (!str.length()) {
-        return "";
-    }
-
-    size_t pos = distance;
-
-    while (pos < str.size()) {
-        str.insert(pos, "\n");
-        pos += distance + 1;
-    }
-
-    return str;
-}
-
-template <typename String, unsigned int line_length>
-static std::string encode_with_line_breaks(String s) {
-    return insert_linebreaks(base64_encode(s, false), line_length);
-}
-
-template <typename String>
-static std::string encode_pem(String s) {
-    return encode_with_line_breaks<String, 64>(s);
-}
-
-template <typename String>
-static std::string encode_mime(String s) {
-    return encode_with_line_breaks<String, 76>(s);
-}
-
-template <typename String>
-static std::string encode(String s, bool url) {
-    return base64_encode(reinterpret_cast<const unsigned char*>(s.data()), s.length(), url);
-}
-
-std::string base64_encode(unsigned char const* bytes_to_encode, size_t in_len, bool url) {
-
-    size_t len_encoded = (in_len + 2) / 3 * 4;
-
-    unsigned char trailing_char = url ? '.' : '=';
-
-    //
-    // Choose set of base64 characters. They differ
-    // for the last two positions, depending on the url
-    // parameter.
-    // A bool (as is the parameter url) is guaranteed
-    // to evaluate to either 0 or 1 in C++ therefore,
-    // the correct character set is chosen by subscripting
-    // base64_chars with url.
-    //
-    const char* base64_chars_ = base64_chars[url];
-
-    std::string ret;
-    ret.reserve(len_encoded);
-
-    unsigned int pos = 0;
-
-    while (pos < in_len) {
-        ret.push_back(base64_chars_[(bytes_to_encode[pos + 0] & 0xfc) >> 2]);
-
-        if (pos + 1 < in_len) {
-            ret.push_back(base64_chars_[((bytes_to_encode[pos + 0] & 0x03) << 4) + ((bytes_to_encode[pos + 1] & 0xf0) >> 4)]);
-
-            if (pos + 2 < in_len) {
-                ret.push_back(base64_chars_[((bytes_to_encode[pos + 1] & 0x0f) << 2) + ((bytes_to_encode[pos + 2] & 0xc0) >> 6)]);
-                ret.push_back(base64_chars_[bytes_to_encode[pos + 2] & 0x3f]);
-            }
-            else {
-                ret.push_back(base64_chars_[(bytes_to_encode[pos + 1] & 0x0f) << 2]);
-                ret.push_back(trailing_char);
-            }
-        }
-        else {
-
-            ret.push_back(base64_chars_[(bytes_to_encode[pos + 0] & 0x03) << 4]);
-            ret.push_back(trailing_char);
-            ret.push_back(trailing_char);
-        }
-
-        pos += 3;
-    }
-
-
-    return ret;
-}
-
-template <typename String>
-static std::string decode(String encoded_string, bool remove_linebreaks) {
-    //
-    // decode(…) is templated so that it can be used with String = const std::string&
-    // or std::string_view (requires at least C++17)
-    //
-
-    if (encoded_string.empty()) return std::string();
-
-    if (remove_linebreaks) {
-
-        std::string copy(encoded_string);
-
-        copy.erase(std::remove(copy.begin(), copy.end(), '\n'), copy.end());
-
-        return base64_decode(copy, false);
-    }
-
-    size_t length_of_string = encoded_string.length();
-    size_t pos = 0;
-
-    //
-    // The approximate length (bytes) of the decoded string might be one or
-    // two bytes smaller, depending on the amount of trailing equal signs
-    // in the encoded string. This approximation is needed to reserve
-    // enough space in the string to be returned.
-    //
-    size_t approx_length_of_decoded_string = length_of_string / 4 * 3;
-    std::string ret;
-    ret.reserve(approx_length_of_decoded_string);
-
-    while (pos < length_of_string) {
-        //
-        // Iterate over encoded input string in chunks. The size of all
-        // chunks except the last one is 4 bytes.
-        //
-        // The last chunk might be padded with equal signs or dots
-        // in order to make it 4 bytes in size as well, but this
-        // is not required as per RFC 2045.
-        //
-        // All chunks except the last one produce three output bytes.
-        //
-        // The last chunk produces at least one and up to three bytes.
-        //
-
-        size_t pos_of_char_1 = pos_of_char(encoded_string[pos + 1]);
-
-        //
-        // Emit the first output byte that is produced in each chunk:
-        //
-        ret.push_back(static_cast<std::string::value_type>(((pos_of_char(encoded_string[pos + 0])) << 2) + ((pos_of_char_1 & 0x30) >> 4)));
-
-        if ((pos + 2 < length_of_string) &&  // Check for data that is not padded with equal signs (which is allowed by RFC 2045)
-            encoded_string[pos + 2] != '=' &&
-            encoded_string[pos + 2] != '.'            // accept URL-safe base 64 strings, too, so check for '.' also.
-            )
-        {
-            //
-            // Emit a chunk's second byte (which might not be produced in the last chunk).
-            //
-            unsigned int pos_of_char_2 = pos_of_char(encoded_string[pos + 2]);
-            ret.push_back(static_cast<std::string::value_type>(((pos_of_char_1 & 0x0f) << 4) + ((pos_of_char_2 & 0x3c) >> 2)));
-
-            if ((pos + 3 < length_of_string) &&
-                encoded_string[pos + 3] != '=' &&
-                encoded_string[pos + 3] != '.'
-                )
-            {
-                //
-                // Emit a chunk's third byte (which might not be produced in the last chunk).
-                //
-                ret.push_back(static_cast<std::string::value_type>(((pos_of_char_2 & 0x03) << 6) + pos_of_char(encoded_string[pos + 3])));
-            }
-        }
-
-        pos += 4;
-    }
-
-    return ret;
-}
-
-std::string base64_decode(std::string const& s, bool remove_linebreaks) {
-    return decode(s, remove_linebreaks);
-}
-
-std::string base64_encode(std::string const& s, bool url) {
-    return encode(s, url);
-}
-
-std::string base64_encode_pem(std::string const& s) {
-    return encode_pem(s);
-}
-
-std::string base64_encode_mime(std::string const& s) {
-    return encode_mime(s);
-}
-
-#if __cplusplus >= 201703L
+//      status = crc->Hash(crc, Buf, BufSize, Crc32CheckSum);
+//      if (BDM_ERROR(status)) { break; }
 //
-// Interface with std::string_view rather than const std::string&
-// Requires C++17
-// Provided by Yannic Bonenberger (https://github.com/Yannic)
+//      crcData->Hdr.Delete(crc);
+//   } while (FALSE);
+//   return status;
+//}
+
+
+///**
+//* @brief       Кодирование буфера с помощью Radix64.
+//* @param[out]      EncodedStr        Результирующая строка
+//* @param[out]      EncodedStrLen     Длина результирующей строки
+//* @param[in]       Buf2Encode        Буфер для кодирования
+//* @param[in]       Buf2EncodeLen     Длина буфера для кодирования
+//* @retval         status Статус операции
+//**/
+//UNSAFE
+//static
+//BDM_STATUS
+//InRadix64Encode(
+//   OUT CHAR** EncodedStr,
+//   OUT UINT32* EncodedStrLen,
+//   IN  UINT8* Buf2Encode,
+//   IN  UINT32  Buf2EncodeLen)
+//{
+//   BDM_STATUS status = BDM_SUCCESS;
+//   CHAR* encodedCheckSum = NULL;
+//   do
+//   {
+//      if (NULL == EncodedStr || NULL == EncodedStrLen || 0 == Buf2EncodeLen) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
 //
+//      UINT32 checkSum;
+//      status = InCalcCrc32CheckSum(Buf2Encode, Buf2EncodeLen, &checkSum);
+//      if (BDM_ERROR(status)) { break; }
+//      
+//      UINT32 encodedCheckSumLen;
+//      status = InBase64Encode(&encodedCheckSum, &encodedCheckSumLen, (UINT8*)&checkSum, sizeof(checkSum), FALSE);
+//      if (BDM_ERROR(status)) { break; }
+//
+//      status = InBase64EncodeMime(EncodedStr, EncodedStrLen, Buf2Encode, Buf2EncodeLen);
+//      if (BDM_ERROR(status)) { break; }
+//
+//      CHAR* pEncodedStr = *EncodedStr;
+//      pEncodedStr[(*EncodedStrLen)++] = '=';
+//      BdmMemCopy(&pEncodedStr[*EncodedStrLen], encodedCheckSum, encodedCheckSumLen);
+//      (*EncodedStrLen) += encodedCheckSumLen;
+//      pEncodedStr[*EncodedStrLen] = '\0';
+//   } while (FALSE);
+//   return status;
+//}
 
-std::string base64_encode(std::string_view s, bool url) {
-    return encode(s, url);
+
+///**
+//* @brief                             Декодирование Radix64 строки
+//* @param[out]      DecodedBuf        Результирующий буфер
+//* @param[out]      DecodedBufLen     Размер результирующего буфера
+//* @param[in]       EncodedStr        Строка для кодирования
+//* @param[in]       EncodedStrLen     Длина строки для декодирования
+//* @retval         status Статус операции
+//**/
+//UNSAFE
+//static
+//BDM_STATUS
+//InRadix64Decode(
+//   OUT UINT8** DecodedBuf,
+//   OUT UINT32* DecodedBufLen,
+//   IN  CHAR* EncodedStr,
+//   IN  UINT32  EncodedStrLen)
+//{
+//   BDM_STATUS status = BDM_SUCCESS;
+//
+//   UINT8* decodedCheckSum = NULL;
+//   UINT32 decodedCheckSumLen;
+//   CHAR encodedCheckSum[RADIX64_HASH_LEN] = { '\0' };
+//   UINT32 calcedCheckSum;
+//   do
+//   {
+//      if (NULL == DecodedBuf  || NULL == EncodedStr || 0 == EncodedStrLen || NULL == DecodedBufLen) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
+//      if ('=' != EncodedStr[EncodedStrLen - RADIX64_HASH_LEN - 1]) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
+//
+//      BdmMemCopy(encodedCheckSum, &EncodedStr[EncodedStrLen - RADIX64_HASH_LEN], RADIX64_HASH_LEN);
+//      EncodedStrLen -= (RADIX64_HASH_LEN + 1);
+//
+//      status = Base64Decode(&decodedCheckSum, &decodedCheckSumLen, encodedCheckSum, RADIX64_HASH_LEN, Base64Type_standard);
+//      if (BDM_ERROR(status)) { break; }
+//      
+//      if (sizeof(calcedCheckSum) != decodedCheckSumLen) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
+//      
+//      status = InBase64DecodeWithSeparators(DecodedBuf, DecodedBufLen, EncodedStr, EncodedStrLen);
+//      if (BDM_ERROR(status)) { break; }
+//
+//      status = InCalcCrc32CheckSum(*DecodedBuf, *DecodedBufLen,&calcedCheckSum);
+//      if (BDM_ERROR(status)) { break; }
+//
+//      if (BdmMemCmp(&calcedCheckSum, decodedCheckSum, sizeof(calcedCheckSum)) != 0) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
+//   } while (FALSE);
+//   return status;
+//}
+
+
+
+std::string
+Base64Encode(
+   const std::string& Buf2Encode,
+   Base64EncodeType EncodingType)
+{
+    switch (EncodingType)
+    {
+    case Base64EncodeType::standard: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), false); break;
+    case Base64EncodeType::url: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), true); break;
+    //case Base64EncodeType::radix64:return InRadix64Encode(EncodedStr, EncodedStrLen, Buf2Encode, Buf2EncodeLen); break;
+    case Base64EncodeType::mime: return InBase64EncodeMime(Buf2Encode); break;
+    case Base64EncodeType::pem:return InBase64EncodePem(Buf2Encode); break;
+    default: return "";
+    }
 }
 
-std::string base64_encode_pem(std::string_view s) {
-    return encode_pem(s);
-}
 
-std::string base64_encode_mime(std::string_view s) {
-    return encode_mime(s);
+std::string
+Base64Decode(
+   const std::string &EncodedStr,
+   Base64EncodeType DecodingType)
+{
+    switch (DecodingType)
+    {
+    case Base64EncodeType::standard: 
+    case Base64EncodeType::url:return InBase64StandardDecode(EncodedStr); break;
+   // case Base64EncodeType::radix64:status = InRadix64Decode(DecodedBuf, DecodedBufLen, encodedStrCpy, EncodedStrLen); break;
+    case Base64EncodeType::mime:
+    case Base64EncodeType::pem:return InBase64DecodeWithSeparators(EncodedStr); break;
+    default: return "";
+    }
 }
-
-std::string base64_decode(std::string_view s, bool remove_linebreaks) {
-    return decode(s, remove_linebreaks);
-}
-
-#endif  // __cplusplus >= 201703L
