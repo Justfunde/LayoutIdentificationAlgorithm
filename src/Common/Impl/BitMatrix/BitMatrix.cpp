@@ -106,7 +106,7 @@ BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
 
 bool operator==(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept
 {
-	return static_cast<uint32_t>(BitMatrix::Compare(FirstMatr, SecondMatr)) == 1;
+	return static_cast<bool>(BitMatrix::Compare(FirstMatr, SecondMatr)) == 1;
 }
 
 bool BitMatrix::operator!() noexcept
