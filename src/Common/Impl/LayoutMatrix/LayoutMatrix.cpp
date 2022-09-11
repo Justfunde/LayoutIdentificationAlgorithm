@@ -1,6 +1,5 @@
 #include "Include/LayoutMatrix.h"
 
-
 constexpr std::string_view file_section_param = "__PARAMETERS__";
 constexpr std::string_view file_Isize_param = "I__SIZE__";
 constexpr std::string_view file_Jsize_param = "__J__SIZE__";
@@ -8,22 +7,22 @@ constexpr std::string_view file_encode_param = "__ENCODE__";
 
 //CoordinateWorkspace
 
-bool WorkspaceCoords::setAngleCoords(const Coord& leftTop, const Coord& rightBot)
-{
-	if (leftTop.x > rightBot.x || leftTop.y < rightBot.y)
-		return false;
-	this->leftTop = leftTop;
-	this->rightBot = rightBot;
-	return true;
-}
-
-bool WorkspaceCoords::isInWorkspace(int32_t x, int32_t y)
-{
-	if (x >leftTop.x && x < rightBot.x)
-		if (y < leftTop.y && y > rightBot.y)
-			return true;
-	return false;
-}
+//bool WorkspaceCoords::setAngleCoords(const Coord& leftTop, const Coord& rightBot)
+//{
+//	if (leftTop.x > rightBot.x || leftTop.y < rightBot.y)
+//		return false;
+//	this->leftTop = leftTop;
+//	this->rightBot = rightBot;
+//	return true;
+//}
+//
+//bool WorkspaceCoords::isInWorkspace(int32_t x, int32_t y)
+//{
+//	if (x >leftTop.x && x < rightBot.x)
+//		if (y < leftTop.y && y > rightBot.y)
+//			return true;
+//	return false;
+//}
 
 
 //LayoutMatrix
@@ -158,21 +157,9 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 }
 
 
-BitMatrix LayoutMatrix::GetMatrix() const
-{
-	return static_cast<BitMatrix>(*this);
-}
 
-std::string LayoutMatrix::GetHash() const
-{
-	return hash;
-}
 
-void LayoutMatrix::setMatrix(const BitMatrix& matrix)
-{
-	*this = matrix;
-	hash.clear();
-}
+
 
 void LayoutMatrix::setHash(const std::string& hash)
 {
@@ -182,7 +169,7 @@ void LayoutMatrix::setHash(const std::string& hash)
 
 
 
-std::string LayoutMatrix::encodeHash()
+std::string LayoutMatrix::GetHash()
 {
 	if (!(*this)) return std::string();
 	std::pair <std::string, double> RLE = RLE_encode();
@@ -198,37 +185,7 @@ BitMatrix LayoutMatrix::decodeHash()
 	return static_cast<BitMatrix>(*this);
 }
 
-std::pair<std::string,double> LayoutMatrix::RLE_encode()
-{
-	//assert(Isize != 0 && Jsize != 0);
-	std::string RLE_encoded;
-	bool curr_value = Get(0, 0);
-	char key = 0;
-	for (size_t i = 0; i < Isize; i++)
-	{
-		for (size_t j = 0; j < Jsize; j++)
-		{
-			if (curr_value == Get(i, j))
-			{
-				key++;
-			}
-			else {
-				RLE_encoded += unsafeWriteLastBit(key, curr_value);
-				key = 1;
-				curr_value = !curr_value;
-			}
-			if (key == 0b01111111)
-			{
-				RLE_encoded += unsafeWriteLastBit(key, curr_value);
-				key = 0;
-			}
-		}
-	}
 
-	RLE_encoded += unsafeWriteLastBit(key, curr_value);
-	double compression_coeff = static_cast<double>(ColCnt * RowCnt) / static_cast<double>(RLE_encoded.length()) ;
-	return std::make_pair(RLE_encoded, compression_coeff);
-}
 
 std::string LayoutMatrix::Base64_encode(const std::string& str,bool RLE)
 {
@@ -280,27 +237,3 @@ std::string LayoutMatrix::Base64_decode(const std::string& str)
 	return tmp;
 }
 
-void LayoutMatrix::RLE_decode(const std::string& str)
-{
-	if (str.empty())
-		return;
-	size_t j = 0, k = 0;
-	for (size_t i = 0; i < str.length(); i++)
-	{
-		char tmp = str[i];
-		bool value = (tmp & BIT(7)) >> 7;
-		tmp = unsafeWriteLastBit(tmp, 0);
-
-		while (tmp != 0)
-		{
-			Set(k, j, value);
-			j++;
-			if (j == Jsize)
-			{
-				k++;
-				j = 0;
-			}
-			tmp--;
-		}
-	}
-}
