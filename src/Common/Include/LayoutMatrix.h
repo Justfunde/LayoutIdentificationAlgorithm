@@ -1,15 +1,10 @@
 #pragma once
-#include "Matrix.h"
+#include "Include/BitMatrix.h"
 #include "Base64.h"
 #include "LayoutData.hpp"
 #include <string>
 #include <memory>
 #include <cmath>
-
-constexpr std::string_view file_section_param = "__PARAMETERS__";
-constexpr std::string_view file_i_size_param = "I__SIZE__";
-constexpr std::string_view file_j_size_param = "__J__SIZE__";
-constexpr std::string_view file_encode_param = "__ENCODE__";
 
 
 struct WorkspaceCoords
@@ -25,9 +20,7 @@ public:
 class LayoutMatrix:public BitMatrix
 {
 private:
-
 	std::string         hash;
-
 public:
 	//Constructors
 	LayoutMatrix() {}
@@ -40,12 +33,12 @@ public:
 
 
 	//Matrix based methods
-	BitMatrix getMatrix() const;
+	BitMatrix GetMatrix() const;
 	void setMatrix(const BitMatrix& matrix);
 	std::string encodeHash();
 
 	//Hash based methods
-	std::string getHash() const;
+	std::string GetHash() const;
 	void setHash(const std::string& hash);
 	BitMatrix decodeHash();
 

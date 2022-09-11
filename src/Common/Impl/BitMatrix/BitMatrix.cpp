@@ -1,6 +1,6 @@
 #include "Include/BitMatrix.h"
 
-#define BIT(n)         (1U << (n))
+
 constexpr uint8_t g_BitsInByte = 8;
 
 

@@ -9,7 +9,7 @@
 #include <ctime>
 
 
-
+#define BIT(n)         (1U << (n))
 
 class BitMatrix{
 protected:
