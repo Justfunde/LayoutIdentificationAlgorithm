@@ -1,35 +1,10 @@
+#include "Include/ByteHandler.h"
 #include "Include/RunLengthEncoding.h"
 
 constexpr uint8_t g_maxRleCounterValue = 0b01111111;
+constexpr uint8_t g_lastBitPos = BITS_IN_BYTE - 1;
 
-#define BIT(n)         (1U << (n))
-#define GET_BIT(value, n) (((value) & (n)) >> n)
-
-
-char unsafeWriteLastBit(char byte, bool value)
-{
-	switch (value)
-	{
-	case true:
-		return byte | BIT(7);
-	case false:
-		return byte & ~BIT(7);
-	}
-	return -1;
-}
-
-void InSetBit(char &Byte, uint8_t Pos, bool Value)
-{
-   if(7 > Pos) { return;}
-
-   switch (Value)
-   {
-   case true: Byte |= BIT(Pos);
-   case false: Byte &=~BIT(Pos);
-   }
-}
-
-
+ 
 double Rle::CalcCompressionCoeffitient(bool ByteInterpretation);
 
 
@@ -50,30 +25,33 @@ std::string Rle::ByteEncode(const std::string &Str)
    std::string encodedStr;
    encodedStr.reserve(Str.length());
 
-	char key = 0;
-	bool currBitValue = GET_BIT(Str[0],7);
+	uint8_t key = 0;
+	bool currBitValue = ByteHandler::GetBit(Str[0], g_lastBitPos);
 	for (size_t i = 0; i < Str.length(); i++)
 	{
       for(int8_t j = 7; j >= 0; j--)
       {
-         if (currBitValue == GET_BIT(Str[i],j))
+         if (currBitValue == ByteHandler::GetBit(Str[i],j))
 			{
 				key++;
 			}
 			else {
-				encodedStr += unsafeWriteLastBit(key, currBitValue);
+				ByteHandler::SetBit(key, g_lastBitPos, currBitValue);
+				encodedStr += key;
 				key = 1;
 				currBitValue = !currBitValue;
 			}
 			if (g_maxRleCounterValue == key)
 			{
-				encodedStr += unsafeWriteLastBit(key, currBitValue);
+				ByteHandler::SetBit(key, g_lastBitPos, currBitValue);
+				encodedStr += key;
 				key = 0;
 			}
-
        }
 	}
-	encodedStr += unsafeWriteLastBit(key, currBitValue);
+	ByteHandler::SetBit(key, g_lastBitPos, currBitValue);
+	encodedStr += key;
+
    encodedStr.shrink_to_fit();
    return encodedStr;
 }
@@ -89,14 +67,14 @@ std::string Rle::ByteDecode(const std::string &EncodedStr)
 	size_t j = 0, k = 0;
 	for (size_t i = 0; i < EncodedStr.length(); i++)
 	{
-		char counter = EncodedStr[i];
-		bool value = GET_BIT(EncodedStr[i], 7);
-		counter = unsafeWriteLastBit(counter, 0);
-      char byte = 0;
+		uint8_t counter = EncodedStr[i];
+		bool value = ByteHandler::GetBit(EncodedStr[i], 7);
+		ByteHandler::SetBit(counter, g_lastBitPos, 0);
+      uint8_t byte = 0;
       uint8_t bitPosition = 7;
 		while (counter != 0)
 		{
-			InSetBit(byte,bitPosition,value);
+			ByteHandler::SetBit(byte, bitPosition, value);
 			if (0 == g_maxRleCounterValue)
 			{
 				k++;
