@@ -2,13 +2,13 @@
 
 std::string LayoutMatrix::EncodeMatrix()
 {
-   
+   return "";
 }
 
 
 BitMatrix LayoutMatrix::DecodeHash()
 {
-
+	return BitMatrix();
 }
 
 //________________________RLE_________________________

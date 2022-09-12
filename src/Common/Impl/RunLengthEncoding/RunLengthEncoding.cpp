@@ -89,19 +89,20 @@ std::string Rle::ByteDecode(const std::string &EncodedStr)
 	size_t j = 0, k = 0;
 	for (size_t i = 0; i < EncodedStr.length(); i++)
 	{
-		char tmp = EncodedStr[i];
+		char counter = EncodedStr[i];
 		bool value = GET_BIT(EncodedStr[i], 7);
-		tmp = unsafeWriteLastBit(tmp, 0);
-		while (tmp != 0)
+		counter = unsafeWriteLastBit(counter, 0);
+      char byte = 0;
+      uint8_t bitPosition = 7;
+		while (counter != 0)
 		{
-			Set(k, j, value);
-			j++;
-			if (j == Jsize)
+			InSetBit(byte,bitPosition,value);
+			if (0 == g_maxRleCounterValue)
 			{
 				k++;
 				j = 0;
 			}
-			tmp--;
+			counter--;
 		}
 	}
    decodedStr.shrink_to_fit();
