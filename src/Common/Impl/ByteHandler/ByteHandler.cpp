@@ -19,22 +19,11 @@ SetBit(
 
    const size_t byteIndex = ArrSz * BITS_IN_BYTE / Pos;
    const uint8_t bitIndex = BITS_IN_BYTE % Pos;
-   SetBit(Arr[byteIndex], bitIndex, Value);
-}
-
-
-inline 
-bool
-GetBit(
-   uint8_t *Arr,
-   size_t ArrSz,
-   size_t Pos)
-{
-   if(nullptr == Arr || g_ptrSz > ArrSz || MAX_BIT_POS(ArrSz) < Pos ) { throw std::invalid_argument("Invalid bit position");}
-
-   const size_t byteIndex = ArrSz * BITS_IN_BYTE / Pos;
-   const uint8_t bitIndex = BITS_IN_BYTE % Pos;
-   return GetBit(Arr[byteIndex],bitIndex);
+   switch (Value)
+   {
+      case true: Arr[byteIndex] |= BIT(bitIndex);
+      case false: Arr[byteIndex] &= (~BIT(bitIndex));
+   }
 }
 
 
@@ -52,6 +41,21 @@ SetBit(
       case true: Byte |= BIT(Pos);
       case false: Byte &= (~BIT(Pos));
    }
+}
+
+
+inline 
+bool
+GetBit(
+   uint8_t *Arr,
+   size_t ArrSz,
+   size_t Pos)
+{
+   if(nullptr == Arr || g_ptrSz > ArrSz || MAX_BIT_POS(ArrSz) < Pos ) { throw std::invalid_argument("Invalid bit position");}
+
+   const size_t byteIndex = ArrSz * BITS_IN_BYTE / Pos;
+   const uint8_t bitIndex = BITS_IN_BYTE % Pos;
+   return (Arr[byteIndex] & bitIndex) >> bitIndex;
 }
 
 
