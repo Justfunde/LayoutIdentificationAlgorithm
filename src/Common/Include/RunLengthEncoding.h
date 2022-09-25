@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 
+#define MATRIX_IMPLEMENTED
 #ifdef MATRIX_IMPLEMENTED
 #include "Include/LayoutMatrix.h"
 #endif //!MATRIX_IMPLEMENTED
@@ -25,7 +26,7 @@ namespace Rle
    std::string Encode(const LayoutMatrix &Matrix);
 
    LayoutMatrix DecodeMatrix(std::string_view Str, uint32_t RowCount, uint32_t ColCount);
-   
+
    #endif //!MATRIX_IMPLEMENTED
 }
 

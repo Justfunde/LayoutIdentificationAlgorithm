@@ -56,8 +56,12 @@ public:
 	//static methods
 	static LayoutMatrix DecodeHash(std::string_view Hash);
 	static std::string  EncodeHash(const LayoutMatrix &Matrix);
-	
+
+	std::string EncodeSz() const;
+	char EncodeEncodings(bool Rle, bool Base64) const;
 private:
+	
+
 	std::string EncodeMatrix();
 	BitMatrix DecodeHash();
 
