@@ -134,12 +134,12 @@ bool BitMatrix::IsAllocated() const
 	return IsAlloced; 
 }
 
-size_t BitMatrix::GetIsize() const
+uint32_t BitMatrix::GetIsize() const
 {
 	return Isize;
 }
 
-size_t BitMatrix::GetJsize() const
+uint32_t BitMatrix::GetJsize() const
 {
 	return Jsize;
 }

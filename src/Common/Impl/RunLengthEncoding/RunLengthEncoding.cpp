@@ -5,22 +5,38 @@ constexpr uint8_t g_maxRleCounterValue = 0b01111111;
 constexpr uint8_t g_lastBitPos = BITS_IN_BYTE - 1;
 
  
-double Rle::CalcCompressionCoeffitient(bool ByteInterpretation);
+double 
+Rle::CalcCompressionCoeffitient(
+	std::string_view Str,
+	bool ByteInterpretation)
+{
+	if(Str.empty()) { return 0;}
+
+	const double strLen = Str.length();
+	if(ByteInterpretation) { return strLen / static_cast<double>(ByteEncode(Str).length());}
+	return strLen / static_cast<double>(Encode(Str).length());
+}
 
 
-std::string Rle::Encode(const std::string &Str)
+std::string
+Rle::Encode(
+	std::string_view Str)
 {
    return "";
 }
 
 
-std::string Rle::Decode(const std::string &EncodedStr)
+std::string
+Rle::Decode(
+	std::string_view EncodedStr)
 {
    return "";
 }
 
 
-std::string Rle::ByteEncode(const std::string &Str)
+std::string
+Rle::ByteEncode(
+	std::string_view Str)
 {
    std::string encodedStr;
    encodedStr.reserve(Str.length());
@@ -57,7 +73,9 @@ std::string Rle::ByteEncode(const std::string &Str)
 }
 
 
-std::string Rle::ByteDecode(const std::string &EncodedStr)
+std::string
+ Rle::ByteDecode(
+	std::string_view EncodedStr)
 {
    if (EncodedStr.empty()) { return "";}
 
@@ -86,3 +104,89 @@ std::string Rle::ByteDecode(const std::string &EncodedStr)
    decodedStr.shrink_to_fit();
    return decodedStr;
 }
+
+#ifdef MATRIX_IMPLEMENTED
+double
+ Rle::CalcCompressionCoeffitient(
+	const LayoutMatrix &Matrix)
+{
+	if(!Matrix) { return 0;}
+	return static_cast<double>(Matrix.ToString().length()) / static_cast<double>(Encode(Matrix).length());
+}
+
+
+std::string
+ Rle::Encode(
+	const LayoutMatrix &Matrix)
+{
+	if(!Matrix) { return "";}
+
+	std::string encoded;
+	encoded.reserve(Matrix.GetIsize() * Matrix.GetIsize());
+
+	bool curr_value = Matrix.Get(0, 0);
+	uint8_t key = 0;
+
+	for (size_t i = 0; i < Matrix.GetIsize(); i++)
+	{
+		for (size_t j = 0; j < Matrix.GetJsize(); j++)
+		{
+			if (curr_value == Matrix.Get(i, j))
+			{
+				key++;
+			}
+			else {
+				ByteHandler::SetBit(key, g_lastBitPos, curr_value);
+				encoded += key;
+				key = 1;
+				curr_value = !curr_value;
+			}
+			if (key == g_maxRleCounterValue)
+			{
+				ByteHandler::SetBit(key, g_lastBitPos, curr_value);
+				encoded += key;
+				key = 0;
+			}
+		}
+	}
+
+	ByteHandler::SetBit(key, g_lastBitPos, curr_value);
+	encoded += key;
+	encoded.shrink_to_fit();
+	return encoded;
+}
+
+
+LayoutMatrix 
+Rle::DecodeMatrix(
+	std::string_view Str,
+	uint32_t RowCount,
+	uint32_t ColCount)
+{
+
+	if (Str.empty()) { return LayoutMatrix();}
+
+	LayoutMatrix matrix(RowCount,ColCount);
+
+	size_t j = 0, k = 0;
+	for (size_t i = 0; i < Str.length(); i++)
+	{
+		uint8_t tmp = Str[i];
+		bool value = ByteHandler::GetBit(tmp,g_lastBitPos);
+		ByteHandler::SetBit(tmp,g_lastBitPos,0);
+
+		while (tmp != 0)
+		{
+			matrix.Set(k, j, value);
+			j++;
+			if (j == matrix.GetJsize())
+			{
+				k++;
+				j = 0;
+			}
+			tmp--;
+		}
+	}
+	return matrix;
+}
+#endif //!MATRIX_IMPLEMENTED

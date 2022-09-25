@@ -1,4 +1,5 @@
 #include "Include/LayoutMatrix.h"
+#include <string_view>
 
 constexpr std::string_view file_section_param = "__PARAMETERS__";
 constexpr std::string_view file_Isize_param = "__I_SIZE__";
@@ -32,7 +33,6 @@ constexpr std::string_view file_encode_param = "__ENCODE__";
 LayoutMatrix::LayoutMatrix(const std::string& in_hash)
 {
 	try {
-		hash = in_hash;
 		RLE_decode(Base64_decode(in_hash));
 	}
 	catch (const std::exception& exception)
@@ -43,7 +43,6 @@ LayoutMatrix::LayoutMatrix(const std::string& in_hash)
 
 LayoutMatrix::LayoutMatrix(const LayoutMatrix& matrix) :BitMatrix(matrix)
 {
-	hash = matrix.hash;
 }
 
 LayoutMatrix::LayoutMatrix(LayoutMatrix&& matrix) noexcept
@@ -55,7 +54,6 @@ LayoutMatrix::LayoutMatrix(LayoutMatrix&& matrix) noexcept
 	IsAlloced = matrix.IsAlloced;
 	Bitmap = matrix.Bitmap;
 	matrix.Bitmap = nullptr;
-	hash = std::move(matrix.hash);
 }
 
 LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
@@ -104,7 +102,6 @@ LayoutMatrix& LayoutMatrix::operator=(const LayoutMatrix& matrix)
 		return *this;
 	try {
 	Reset();
-	hash = matrix.hash;
 	RowCnt = matrix.RowCnt;
 	ColCnt = matrix.ColCnt;
 	Isize = matrix.Isize;
@@ -117,7 +114,6 @@ LayoutMatrix& LayoutMatrix::operator=(const LayoutMatrix& matrix)
 	{
 		std::cerr << "\nLayoutMatrix operator= error:" << exception.what();
 		Reset();
-		hash.clear();
 	}
 	return *this;
 }
@@ -139,7 +135,6 @@ LayoutMatrix& LayoutMatrix::operator=(BitMatrix&& matrix) noexcept
 LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 {
 	Reset();
-	hash = std::move(matrix.hash);
 	Bitmap = matrix.Bitmap;
 	matrix.Bitmap = nullptr;
 	ColCnt = matrix.ColCnt;
@@ -155,17 +150,13 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 
 
 
-void LayoutMatrix::setHash(const std::string& hash)
-{
-	this->hash = hash;
-	Reset();
-}
 
 
 
 std::string LayoutMatrix::GetHash()
 {
 	if (!(*this)) return std::string();
+	std::string hash;
 	std::pair <std::string, double> RLE = RLE_encode();
 	if (RLE.second < 1)
 		hash = Base64_encode(ToString(), 0);
@@ -175,6 +166,7 @@ std::string LayoutMatrix::GetHash()
 
 BitMatrix LayoutMatrix::decodeHash()
 {
+	std::string hash;
 	RLE_decode(Base64_decode(hash));
 	return static_cast<BitMatrix>(*this);
 }
@@ -231,3 +223,29 @@ std::string LayoutMatrix::Base64_decode(const std::string& str)
 	return tmp;
 }
 
+
+LayoutMatrix
+LayoutMatrix::DecodeHash(
+	std::string_view Hash)
+{
+	if(Hash.empty()) { throw std::invalid_argument("Invalid hash");}
+	return LayoutMatrix();
+	
+
+}
+
+
+std::string 
+LayoutMatrix::EncodeHash(
+	const LayoutMatrix &Matrix)	
+{
+	if(!Matrix) { throw std::invalid_argument("Invalid matrix");}
+
+	std::string matrixStr = Matrix.ToString();
+
+	size_t encodedSz = Matrix.GetIsize();
+	//matrixStr.reserve(matrixStr.length() + file_section_param.length() + file_Isize_param.length() + file_Jsize_param.length() + file_encode_param.length() + 10);//10-approx 
+	//std::string Matrix
+	return "";
+
+}

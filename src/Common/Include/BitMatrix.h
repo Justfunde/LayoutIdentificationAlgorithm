@@ -14,8 +14,8 @@
 class BitMatrix{
 protected:
 	int8_t**      	            Bitmap;
-	size_t                     Jsize, Isize;
-	size_t                     ColCnt, RowCnt;
+	uint32_t                     Jsize, Isize;
+	uint32_t                     ColCnt, RowCnt;
 	bool                       IsAlloced;
 	
 public:
@@ -28,8 +28,8 @@ public:
 
 	bool             Get(size_t i, size_t j) const;
 	bool             IsAllocated() const;
-	size_t           GetIsize() const;
-	size_t           GetJsize() const;
+	uint32_t           GetIsize() const;
+	uint32_t           GetJsize() const;
 	std::string      ToString() const;
 
 

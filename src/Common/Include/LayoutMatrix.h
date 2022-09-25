@@ -1,8 +1,13 @@
-#pragma once
+#ifndef __LAYOUT_MATRIX_H__
+#define __LAYOUT_MATRIX_H__
+
 #include "Include/BitMatrix.h"
-#include "Base64.h"
-#include "LayoutData.hpp"
+#include "Include/Base64.h"
+#include "Include/LayoutData.hpp"
+
+
 #include <string>
+#include <string_view>
 #include <memory>
 #include <cmath>
 
@@ -19,8 +24,6 @@
 
 class LayoutMatrix:public BitMatrix
 {
-private:
-	std::string         hash;
 public:
 	//Constructors
 	LayoutMatrix():BitMatrix() {}
@@ -48,6 +51,11 @@ public:
 	LayoutMatrix& operator=(BitMatrix&& matrix) noexcept;
 	LayoutMatrix& operator=(const LayoutMatrix& matrix);
 	LayoutMatrix& operator=(LayoutMatrix&& matrix) noexcept;
+	bool operator!() const  { return !static_cast<BitMatrix>(*this);}
+
+	//static methods
+	static LayoutMatrix DecodeHash(std::string_view Hash);
+	static std::string  EncodeHash(const LayoutMatrix &Matrix);
 	
 private:
 	std::string EncodeMatrix();
@@ -62,5 +70,5 @@ private:
 	inline char unsafeWriteLastBit(char byte,bool value);
 };
 
-
+#endif //!__LAYOUT_MATRIX_H__
 
