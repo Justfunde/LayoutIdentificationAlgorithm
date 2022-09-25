@@ -7,27 +7,31 @@
 #define __BASE_64_H__
 
 #include <string>
+#include <string_view>
 
 
-/*! Enum для определения класса Base64*/
-enum class Base64EncodeType
+namespace Base64
 {
-   standard,
-   url,
-   radix64,
-   mime,
-   pem
-};
+   /*! Enum для определения класса Base64*/
+   enum class EncodeType
+   {
+      standard,
+      url,
+      radix64,
+      mime,
+      pem
+   };
 
 
-std::string
-Base64Encode(
-   const std::string& Buf2Encode,
-   Base64EncodeType EncodingType);
+   std::string
+   Base64Encode(
+      std::string_view Buf2Encode,
+      EncodeType EncodingType);
 
-std::string
-Base64Decode(
-   const std::string &EncodedStr,
-   Base64EncodeType DecodingType);
+   std::string
+   Base64Decode(
+      std::string_view EncodedStr,
+      EncodeType DecodingType);
+}
 
 #endif // !__BASE_64_H__

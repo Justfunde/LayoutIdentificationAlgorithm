@@ -188,7 +188,7 @@ std::string LayoutMatrix::Base64_encode(const std::string& str,bool RLE)
 	if (RLE)
 		is_RLE = "RLE";
 	return Base64Encode(str + std::string(file_section_param) + std::string(file_Isize_param) + std::to_string(Isize) + std::string(file_Jsize_param) + std::to_string(Jsize) + std::string(file_encode_param) + is_RLE,
-	Base64EncodeType::standard);
+	EncodeType::standard);
 }
 
 
@@ -207,7 +207,7 @@ char LayoutMatrix::unsafeWriteLastBit(char byte, bool value)
 
 std::string LayoutMatrix::Base64_decode(const std::string& str)
 {
-	std::string encoded_str = Base64Decode(str,Base64EncodeType::standard);
+	std::string encoded_str = Base64Decode(str,EncodeType::standard);
 	if(encoded_str.empty()) throw std::runtime_error("String for Base64_decode is empty!");
 	const std::string_view parameters = std::string_view(encoded_str).substr(encoded_str.find(file_section_param), encoded_str.length() - encoded_str.find(file_section_param));
 	const std::string_view Isize = parameters.substr(parameters.find(file_Isize_param) + file_Isize_param.length(), parameters.find(file_Jsize_param)- parameters.find(file_Isize_param) - file_Isize_param.length());

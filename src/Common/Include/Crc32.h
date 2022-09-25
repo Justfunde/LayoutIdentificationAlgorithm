@@ -5,7 +5,10 @@
 
 using CRC32_HASH = uint32_t;
 
-//only for LittleEndian
-CRC32_HASH Crc32HashCalc(const char* Data, uint32_t DataSz);
+namespace Crc32
+{
+   //only for LittleEndian
+   CRC32_HASH CalcHash(const char* Data, uint32_t DataSz);
+}
 
 #endif//!__CRC_32_H__

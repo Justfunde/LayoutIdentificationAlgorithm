@@ -23,6 +23,7 @@ static const char* g_Base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 constexpr size_t g_radixHashLen = 8;
 constexpr size_t g_pemStrLen = 64;
 constexpr size_t g_mimeStrLen = 76;
+constexpr std::string_view g_endlineStr = "\r\n";
 
 
 #define CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen) ( ( ( (Buf2EncodeLen) * 4 / 3 + 3) < g_pemStrLen) ? ((Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + g_radixHashLen) : ( (Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + ((Buf2EncodeLen) * 4 / 3 + 2) / g_pemStrLen * 3))
@@ -50,19 +51,18 @@ InGetSymbPosition(
 static
 std::string
 InBase64Encode(
-   const char* Buf2Encode,
-   size_t  Buf2EncodeLen,
+   std::string_view Buf2Encode,
    bool IsUrl)
 {
-    if (nullptr == Buf2Encode || 0 == Buf2EncodeLen ) { throw std::invalid_argument("Invalid buffer to encode"); }
+    if (Buf2Encode.empty()) { throw std::invalid_argument("Invalid buffer to encode"); }
 
     std::string encodedStr;
-    encodedStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen));
+    encodedStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
 
     char trailingChar = (IsUrl) ? '.' : '=';
     const char* dictionary = (IsUrl) ? g_Base64UrlDictionary : g_Base64ClassicDictionary;
 
-    for (size_t i = 0; i < Buf2EncodeLen; i += 3)
+    for (size_t i = 0, Buf2EncodeLen = Buf2Encode.length(); i < Buf2EncodeLen; i += 3)
     {
        encodedStr.push_back(dictionary[(Buf2Encode[i] & 0xFC) >> 2]);
        if (i + 1 < Buf2EncodeLen)
@@ -93,7 +93,7 @@ InBase64Encode(
 static
 std::string
 InBase64StandardDecode(
-    const std::string &EncodedStr)
+    std::string_view  EncodedStr)
 {
     if (0 == EncodedStr.size() ) { throw std::invalid_argument("Invalid buffer to decode"); }
     
@@ -136,14 +136,14 @@ InBase64DecodeWithSeparators(
 static
 std::string
 InBase64EncodeWithSeparator(
-   const char* Buf2Encode,
-   size_t  Buf2EncodeLen,
-   const std::string &SeparatorStr,
+   std::string_view Buf2Encode,
+   std::string_view SeparatorStr,
    size_t EachStrLen)
 {
     if (0 == SeparatorStr.length() || 0 == EachStrLen) { throw std::invalid_argument("Invalid separator encode parameters"); }
     
-    std::string encodedStr =  InBase64Encode(Buf2Encode,Buf2EncodeLen,false);
+    std::string encodedStr =  InBase64Encode(Buf2Encode,false);
+    encodedStr.reserve(encodedStr.length() + encodedStr.length() / EachStrLen + 1);
 
     for (size_t i = 1 , additionalOffset = 0; i < encodedStr.length() / EachStrLen + 1; additionalOffset+= SeparatorStr.length())
     {
@@ -155,17 +155,18 @@ InBase64EncodeWithSeparator(
 static
 std::string
 InBase64EncodePem(
-  const std::string &Str2Encode)
+  std::string_view Str2Encode)
 {
-    return InBase64EncodeWithSeparator(Str2Encode.c_str(),Str2Encode.length(), "\r\n", g_pemStrLen);
+    return InBase64EncodeWithSeparator(Str2Encode, g_endlineStr, g_pemStrLen);
 }
 
 
+static
 std::string
 InBase64EncodeMime(
-const std::string &Str2Encode)
+   std::string_view Str2Encode)
 {
-   return InBase64EncodeWithSeparator(Str2Encode.c_str(),Str2Encode.length(), "\r\n", g_mimeStrLen);
+   return InBase64EncodeWithSeparator(Str2Encode, g_endlineStr, g_mimeStrLen);
 }
 
 
@@ -173,15 +174,15 @@ const std::string &Str2Encode)
 static
 std::string
 InRadix64Encode(
-   const std::string &Str2Encode)
+   std::string_view Str2Encode)
 {
    if(Str2Encode.empty()) { return "";}
 
    std::string encodedStr = InBase64EncodeMime(Str2Encode);
-   CRC32_HASH hash = Crc32HashCalc(encodedStr.c_str(),encodedStr.length());
+   CRC32_HASH hash = Crc32::CalcHash(encodedStr.c_str(),encodedStr.length());
    if(0 == hash) { throw std::runtime_error("Crc32 hash was not calced!");}
 
-   return encodedStr + InBase64Encode(reinterpret_cast<char*>(&hash), sizeof(hash), false);
+   return encodedStr + InBase64Encode(std::string_view(reinterpret_cast<char*>(&hash),sizeof(hash)), false);
 }
 
 
@@ -196,42 +197,45 @@ InRadix64Decode(
    const std::string oldHashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen - 1);
    const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - g_radixHashLen);
 
-   CRC32_HASH calcedHash = Crc32HashCalc(noHashStr.c_str(),noHashStr.length());
-   const std::string calcedHashStr = InBase64Encode(reinterpret_cast<char*>(&calcedHash), sizeof(calcedHash), false);
+   CRC32_HASH calcedHash = Crc32::CalcHash(noHashStr.c_str(),noHashStr.length());
+   const std::string calcedHashStr = InBase64Encode(std::string_view(reinterpret_cast<char*>(&calcedHash),sizeof(calcedHash)), false);
    if(calcedHashStr != oldHashStr) { throw std::runtime_error("Crc32 hash did not match!");}
    return InBase64DecodeWithSeparators(noHashStr);
 }
 
 
-std::string
-Base64Encode(
-   const std::string& Buf2Encode,
-   Base64EncodeType EncodingType)
+namespace Base64
 {
-    switch (EncodingType)
-    {
-    case Base64EncodeType::standard: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), false); 
-    case Base64EncodeType::url: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), true); 
-    case Base64EncodeType::radix64:return InRadix64Encode(Buf2Encode); 
-    case Base64EncodeType::mime: return InBase64EncodeMime(Buf2Encode); 
-    case Base64EncodeType::pem:return InBase64EncodePem(Buf2Encode); 
-    default: return "";
-    }
-}
+   std::string
+   Base64Encode(
+      std::string_view Buf2Encode,
+      EncodeType EncodingType)
+   {
+       switch (EncodingType)
+       {
+       case EncodeType::standard: return InBase64Encode(Buf2Encode, false); 
+       case EncodeType::url: return InBase64Encode(Buf2Encode, true); 
+       case EncodeType::radix64:return InRadix64Encode(Buf2Encode); 
+       case EncodeType::mime: return InBase64EncodeMime(Buf2Encode); 
+       case EncodeType::pem:return InBase64EncodePem(Buf2Encode); 
+       default: return "";
+       }
+   }
 
 
-std::string
-Base64Decode(
-   const std::string &EncodedStr,
-   Base64EncodeType DecodingType)
-{
-    switch (DecodingType)
-    {
-    case Base64EncodeType::standard: 
-    case Base64EncodeType::url:return InBase64StandardDecode(EncodedStr);
-    case Base64EncodeType::radix64:return InRadix64Decode(EncodedStr); 
-    case Base64EncodeType::mime:
-    case Base64EncodeType::pem:return InBase64DecodeWithSeparators(EncodedStr);
-    default: return "";
-    }
+   std::string
+   Base64Decode(
+      std::string_view EncodedStr,
+      EncodeType DecodingType)
+   {
+       switch (DecodingType)
+       {
+       case EncodeType::standard: 
+       case EncodeType::url:return InBase64StandardDecode(EncodedStr);
+       case EncodeType::radix64:return InRadix64Decode(std::string(EncodedStr.begin(),EncodedStr.end())); 
+       case EncodeType::mime:
+       case EncodeType::pem:return InBase64DecodeWithSeparators(std::string(EncodedStr.begin(),EncodedStr.end()));
+       default: return "";
+       }
+   }
 }
