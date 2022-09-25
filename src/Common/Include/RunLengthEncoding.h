@@ -15,8 +15,4 @@ namespace Rle
    std::string ByteDecode(const std::string &EncodedStr);
 }
 
-
-
-
-
 #endif //!__RLE_H__

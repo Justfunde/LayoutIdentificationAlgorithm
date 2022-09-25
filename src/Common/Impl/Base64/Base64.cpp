@@ -3,8 +3,11 @@
 * @brief    Определение функций для работы с Base64
 * @ingroup  BDMAPI
 */
-#include "Include/Base64.h"
+
 #include <stdexcept>
+
+#include "Include/Crc32.h"
+#include "Include/Base64.h"
 
 static const char* g_Base64ClassicDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                                  "abcdefghijklmnopqrstuvwxyz"
@@ -166,130 +169,38 @@ const std::string &Str2Encode)
 }
 
 
-///**
-//* @brief           Рассчет CRC32 хеш суммы от буфера
-//* @param[in]      Buf               Буфер
-//* @param[in]      BufSize           Размер буфера
-//* @param[out]     Crc32CheckSum     CRC32 hash
-//* @retval         status Статус операции
-//**/
-//static
-//BDM_STATUS
-//InCalcCrc32CheckSum(
-//   IN UINT8*   Buf,
-//   IN UINT32   BufSize,
-//   OUT UINT32* Crc32CheckSum)
-//{
-//   BDM_STATUS status = BDM_SUCCESS;
-//   do
-//   {
-//      if (NULL == Buf || 0 == BufSize || NULL == Crc32CheckSum) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
-//
-//      BDM_HASH_PRM hashPrm = { TRUE };
-//      BDM_HASH_32_CRC32* crcData = BdmCreateHashProtocol(BDM_HASH_32_CRC32_SIG, PROP_HASH_CRC32, &hashPrm, sizeof(BDM_HASH_PRM));
-//      if (crcData == NULL) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
-//      BDM_HASH* crc = &crcData->VTable;
-//
-//      status = crc->Hash(crc, Buf, BufSize, Crc32CheckSum);
-//      if (BDM_ERROR(status)) { break; }
-//
-//      crcData->Hdr.Delete(crc);
-//   } while (FALSE);
-//   return status;
-//}
+
+static
+std::string
+InRadix64Encode(
+   const std::string &Str2Encode)
+{
+   if(Str2Encode.empty()) { return "";}
+
+   std::string encodedStr = InBase64EncodeMime(Str2Encode);
+   CRC32_HASH hash = Crc32HashCalc(encodedStr.c_str(),encodedStr.length());
+   if(0 == hash) { throw std::runtime_error("Crc32 hash was not calced!");}
+
+   return encodedStr + InBase64Encode(reinterpret_cast<char*>(&hash), sizeof(hash), false);
+}
 
 
-///**
-//* @brief       Кодирование буфера с помощью Radix64.
-//* @param[out]      EncodedStr        Результирующая строка
-//* @param[out]      EncodedStrLen     Длина результирующей строки
-//* @param[in]       Buf2Encode        Буфер для кодирования
-//* @param[in]       Buf2EncodeLen     Длина буфера для кодирования
-//* @retval         status Статус операции
-//**/
-//UNSAFE
-//static
-//BDM_STATUS
-//InRadix64Encode(
-//   OUT CHAR** EncodedStr,
-//   OUT UINT32* EncodedStrLen,
-//   IN  UINT8* Buf2Encode,
-//   IN  UINT32  Buf2EncodeLen)
-//{
-//   BDM_STATUS status = BDM_SUCCESS;
-//   CHAR* encodedCheckSum = NULL;
-//   do
-//   {
-//      if (NULL == EncodedStr || NULL == EncodedStrLen || 0 == Buf2EncodeLen) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
-//
-//      UINT32 checkSum;
-//      status = InCalcCrc32CheckSum(Buf2Encode, Buf2EncodeLen, &checkSum);
-//      if (BDM_ERROR(status)) { break; }
-//      
-//      UINT32 encodedCheckSumLen;
-//      status = InBase64Encode(&encodedCheckSum, &encodedCheckSumLen, (UINT8*)&checkSum, sizeof(checkSum), FALSE);
-//      if (BDM_ERROR(status)) { break; }
-//
-//      status = InBase64EncodeMime(EncodedStr, EncodedStrLen, Buf2Encode, Buf2EncodeLen);
-//      if (BDM_ERROR(status)) { break; }
-//
-//      CHAR* pEncodedStr = *EncodedStr;
-//      pEncodedStr[(*EncodedStrLen)++] = '=';
-//      BdmMemCopy(&pEncodedStr[*EncodedStrLen], encodedCheckSum, encodedCheckSumLen);
-//      (*EncodedStrLen) += encodedCheckSumLen;
-//      pEncodedStr[*EncodedStrLen] = '\0';
-//   } while (FALSE);
-//   return status;
-//}
+static
+std::string
+InRadix64Decode(
+   const std::string &Str2Decode)
+{
+   if(Str2Decode.empty()) { return "";}
+   if(Str2Decode.length() <= g_radixHashLen) { throw std::invalid_argument("Invalid Radix64 str length!");}
 
+   const std::string oldHashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen - 1);
+   const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - g_radixHashLen);
 
-///**
-//* @brief                             Декодирование Radix64 строки
-//* @param[out]      DecodedBuf        Результирующий буфер
-//* @param[out]      DecodedBufLen     Размер результирующего буфера
-//* @param[in]       EncodedStr        Строка для кодирования
-//* @param[in]       EncodedStrLen     Длина строки для декодирования
-//* @retval         status Статус операции
-//**/
-//UNSAFE
-//static
-//BDM_STATUS
-//InRadix64Decode(
-//   OUT UINT8** DecodedBuf,
-//   OUT UINT32* DecodedBufLen,
-//   IN  CHAR* EncodedStr,
-//   IN  UINT32  EncodedStrLen)
-//{
-//   BDM_STATUS status = BDM_SUCCESS;
-//
-//   UINT8* decodedCheckSum = NULL;
-//   UINT32 decodedCheckSumLen;
-//   CHAR encodedCheckSum[RADIX64_HASH_LEN] = { '\0' };
-//   UINT32 calcedCheckSum;
-//   do
-//   {
-//      if (NULL == DecodedBuf  || NULL == EncodedStr || 0 == EncodedStrLen || NULL == DecodedBufLen) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
-//      if ('=' != EncodedStr[EncodedStrLen - RADIX64_HASH_LEN - 1]) { SET_STATUS(BDM_INVALID_PARAMETER); break; }
-//
-//      BdmMemCopy(encodedCheckSum, &EncodedStr[EncodedStrLen - RADIX64_HASH_LEN], RADIX64_HASH_LEN);
-//      EncodedStrLen -= (RADIX64_HASH_LEN + 1);
-//
-//      status = Base64Decode(&decodedCheckSum, &decodedCheckSumLen, encodedCheckSum, RADIX64_HASH_LEN, Base64Type_standard);
-//      if (BDM_ERROR(status)) { break; }
-//      
-//      if (sizeof(calcedCheckSum) != decodedCheckSumLen) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
-//      
-//      status = InBase64DecodeWithSeparators(DecodedBuf, DecodedBufLen, EncodedStr, EncodedStrLen);
-//      if (BDM_ERROR(status)) { break; }
-//
-//      status = InCalcCrc32CheckSum(*DecodedBuf, *DecodedBufLen,&calcedCheckSum);
-//      if (BDM_ERROR(status)) { break; }
-//
-//      if (BdmMemCmp(&calcedCheckSum, decodedCheckSum, sizeof(calcedCheckSum)) != 0) { SET_STATUS(BDM_SECURITY_VIOLATION); break; }
-//   } while (FALSE);
-//   return status;
-//}
-
+   CRC32_HASH calcedHash = Crc32HashCalc(noHashStr.c_str(),noHashStr.length());
+   const std::string calcedHashStr = InBase64Encode(reinterpret_cast<char*>(&calcedHash), sizeof(calcedHash), false);
+   if(calcedHashStr != oldHashStr) { throw std::runtime_error("Crc32 hash did not match!");}
+   return InBase64DecodeWithSeparators(noHashStr);
+}
 
 
 std::string
@@ -299,11 +210,11 @@ Base64Encode(
 {
     switch (EncodingType)
     {
-    case Base64EncodeType::standard: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), false); break;
-    case Base64EncodeType::url: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), true); break;
-    //case Base64EncodeType::radix64:return InRadix64Encode(EncodedStr, EncodedStrLen, Buf2Encode, Buf2EncodeLen); break;
-    case Base64EncodeType::mime: return InBase64EncodeMime(Buf2Encode); break;
-    case Base64EncodeType::pem:return InBase64EncodePem(Buf2Encode); break;
+    case Base64EncodeType::standard: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), false); 
+    case Base64EncodeType::url: return InBase64Encode(Buf2Encode.c_str(), Buf2Encode.length(), true); 
+    case Base64EncodeType::radix64:return InRadix64Encode(Buf2Encode); 
+    case Base64EncodeType::mime: return InBase64EncodeMime(Buf2Encode); 
+    case Base64EncodeType::pem:return InBase64EncodePem(Buf2Encode); 
     default: return "";
     }
 }
@@ -317,10 +228,10 @@ Base64Decode(
     switch (DecodingType)
     {
     case Base64EncodeType::standard: 
-    case Base64EncodeType::url:return InBase64StandardDecode(EncodedStr); break;
-   // case Base64EncodeType::radix64:status = InRadix64Decode(DecodedBuf, DecodedBufLen, encodedStrCpy, EncodedStrLen); break;
+    case Base64EncodeType::url:return InBase64StandardDecode(EncodedStr);
+    case Base64EncodeType::radix64:return InRadix64Decode(EncodedStr); 
     case Base64EncodeType::mime:
-    case Base64EncodeType::pem:return InBase64DecodeWithSeparators(EncodedStr); break;
+    case Base64EncodeType::pem:return InBase64DecodeWithSeparators(EncodedStr);
     default: return "";
     }
 }
