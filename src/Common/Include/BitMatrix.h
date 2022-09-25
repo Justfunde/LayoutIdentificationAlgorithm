@@ -14,13 +14,12 @@
 class BitMatrix{
 protected:
 	int8_t**      	            Bitmap;
-	uint8_t                    bit_count;
 	size_t                     Jsize, Isize;
 	size_t                     ColCnt, RowCnt;
 	bool                       IsAlloced;
 	
 public:
-	BitMatrix() :Bitmap(nullptr), ColCnt(0), RowCnt(0), Jsize(0), Isize(0), IsAlloced(false), bit_count(0) {}
+	BitMatrix() :Bitmap(nullptr), ColCnt(0), RowCnt(0), Jsize(0), Isize(0), IsAlloced(false) {}
 	BitMatrix(size_t RowCnt, size_t ColCnt);
 	BitMatrix(const BitMatrix& Rhs);
 	BitMatrix(BitMatrix&& Rhs) noexcept;

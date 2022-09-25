@@ -1,8 +1,8 @@
 #include "Include/LayoutMatrix.h"
 
 constexpr std::string_view file_section_param = "__PARAMETERS__";
-constexpr std::string_view file_Isize_param = "I__SIZE__";
-constexpr std::string_view file_Jsize_param = "__J__SIZE__";
+constexpr std::string_view file_Isize_param = "__I_SIZE__";
+constexpr std::string_view file_Jsize_param = "__J_SIZE__";
 constexpr std::string_view file_encode_param = "__ENCODE__";
 
 //CoordinateWorkspace
@@ -54,7 +54,6 @@ LayoutMatrix::LayoutMatrix(LayoutMatrix&& matrix) noexcept
 	Jsize = matrix.Jsize;
 	IsAlloced = matrix.IsAlloced;
 	Bitmap = matrix.Bitmap;
-	bit_count = matrix.bit_count;
 	matrix.Bitmap = nullptr;
 	hash = std::move(matrix.hash);
 }
@@ -67,7 +66,6 @@ LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
 	Jsize = matrix.Jsize;
 	IsAlloced = matrix.IsAlloced;
 	Bitmap = matrix.Bitmap;
-	bit_count = matrix.bit_count;
 	matrix.Bitmap = nullptr;
 }
 
@@ -86,7 +84,6 @@ LayoutMatrix& LayoutMatrix::operator=(const BitMatrix& matrix)
 		ColCnt = matrix.ColCnt;
 		Isize = matrix.Isize;
 		Jsize = matrix.Jsize;
-		bit_count = matrix.bit_count;
 
 		AllocMatrix();
 		CpyBitmap(Bitmap, matrix.Bitmap, ColCnt, RowCnt);
@@ -112,7 +109,6 @@ LayoutMatrix& LayoutMatrix::operator=(const LayoutMatrix& matrix)
 	ColCnt = matrix.ColCnt;
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	bit_count = matrix.bit_count;
 	
 		AllocMatrix();
 		CpyBitmap(Bitmap, matrix.Bitmap, ColCnt, RowCnt);
@@ -136,7 +132,6 @@ LayoutMatrix& LayoutMatrix::operator=(BitMatrix&& matrix) noexcept
 	RowCnt = matrix.RowCnt;
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	bit_count = matrix.bit_count;
 	IsAlloced = matrix.IsAlloced;
 	return *this;
 }
@@ -151,7 +146,6 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 	RowCnt = matrix.RowCnt;
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	bit_count = matrix.bit_count;
 	IsAlloced = matrix.IsAlloced;
 	return *this;
 }

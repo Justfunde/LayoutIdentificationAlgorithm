@@ -11,7 +11,6 @@ BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
 	ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
 	
 	AllocMatrix();
-	bit_count = sizeof(Bitmap[0][0]) * g_BitsInByte;
 	}
 	catch (const std::exception& exception)
 	{
@@ -28,11 +27,9 @@ BitMatrix::BitMatrix(const BitMatrix& Rhs) :IsAlloced(false)
 		ColCnt = Rhs.ColCnt;
 		Isize = Rhs.Isize;
 		Jsize = Rhs.Jsize;
-		bit_count = sizeof(Bitmap[0][0]) * g_BitsInByte;
 
 		if (Rhs.IsAlloced) { AllocMatrix();}
 
-		bit_count = sizeof(Bitmap[0][0]) * g_BitsInByte;
 		if (!CpyBitmap(Bitmap, Rhs.Bitmap, ColCnt, RowCnt)) { throw std::runtime_error("Matrix copy constructor error"); }
 	}
 	catch (const std::exception& exception)
@@ -50,7 +47,6 @@ BitMatrix::BitMatrix(BitMatrix&& Rhs) noexcept
 	Jsize = Rhs.Jsize;
 	IsAlloced = Rhs.IsAlloced;
 	Bitmap = Rhs.Bitmap;
-	bit_count = Rhs.bit_count;
 	Rhs.Bitmap = nullptr;
 }
 
@@ -80,7 +76,6 @@ BitMatrix& BitMatrix::operator=(BitMatrix&& Rhs) noexcept
 	RowCnt = Rhs.RowCnt;
 	Isize = Rhs.Isize;
 	Jsize = Rhs.Jsize;
-	bit_count = Rhs.bit_count;
 	IsAlloced = Rhs.IsAlloced;
 	return *this;
 }
@@ -124,14 +119,14 @@ bool BitMatrix::Get(size_t i, size_t j) const
 	if (i >= Isize || j >= Jsize) {throw std::runtime_error("Invalid index"); }
 	//finding byte pos in arr
 	const size_t iBytePos = i;
-	const size_t jBytePos = j / bit_count;
-	const size_t jAdditBitPos = bit_count - 1 - j % bit_count;
+	const size_t jBytePos = j / g_BitsInByte;
+	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
 	return static_cast<bool>((Bitmap[iBytePos][jBytePos] & BIT(jAdditBitPos)) >> jAdditBitPos);
 }
 
 bool BitMatrix::UnsafeGet(size_t i, size_t j) const
 {
-	return static_cast<bool>((Bitmap[i][j / bit_count] & BIT(bit_count - 1 - j % bit_count)) >> (bit_count - 1 - j % bit_count));
+	return static_cast<bool>((Bitmap[i][j / g_BitsInByte] & BIT(g_BitsInByte - 1 - j % g_BitsInByte)) >> (g_BitsInByte - 1 - j % g_BitsInByte));
 }
 
 bool BitMatrix::IsAllocated() const 
@@ -158,8 +153,8 @@ void BitMatrix::Set(size_t i, size_t j, bool Value)
 	
 	//finding byte pos in arr
 	const size_t iBytePos = i;
-	const size_t jBytePos = j / bit_count;
-	const size_t jAdditBitPos = bit_count - 1 - j % bit_count;
+	const size_t jBytePos = j / g_BitsInByte;
+	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
 
 	switch (Value)
 	{
@@ -178,10 +173,10 @@ void BitMatrix::UnsafeSet(size_t i, size_t j, bool Value)
 	switch (Value)
 	{
 	case true:
-		Bitmap[i][j / bit_count] |= BIT(bit_count - 1 - j % bit_count);
+		Bitmap[i][j / g_BitsInByte] |= BIT(g_BitsInByte - 1 - j % g_BitsInByte);
 		break;
 	case false:
-		Bitmap[i][j / bit_count] &= ~BIT(bit_count - 1 - j % bit_count);
+		Bitmap[i][j / g_BitsInByte] &= ~BIT(g_BitsInByte - 1 - j % g_BitsInByte);
 		break;
 	}
 }
@@ -218,7 +213,7 @@ void BitMatrix::SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd,
 
 void BitMatrix::Print() const noexcept
 {
-	if (!IsAlloced || !Bitmap) { std::cout<<"NULL"; }
+	if (!IsAlloced || !Bitmap) { std::cout << "NULL"; }
 
 	for (size_t i = 0; i < Isize; i++)
 	{
@@ -323,7 +318,6 @@ void BitMatrix::resize(size_t RowCnt, size_t ColCnt)
 	ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
 	try {
 		AllocMatrix();
-		bit_count = sizeof(Bitmap[0][0]) * g_BitsInByte;
 	}
 	catch (const std::exception& exception)
 	{
@@ -399,5 +393,4 @@ void BitMatrix::Reset()
 	Jsize = 0;
 	ColCnt = 0;
 	RowCnt = 0;
-	bit_count = 0;
 }
