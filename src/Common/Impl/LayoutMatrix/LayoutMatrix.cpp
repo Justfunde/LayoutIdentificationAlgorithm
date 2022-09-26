@@ -6,9 +6,20 @@
 #include <string_view>
 #include <sstream>
 
-constexpr std::string_view file_section_param = "__PARAMETERS__";
-constexpr std::string_view file_size_param = "__SIZE__";
-constexpr std::string_view file_encode_param = "__ENCODE_TYPE__";
+namespace MatrixEncodingParamters
+{
+	constexpr std::string_view sectionParameters = "__PARAMETERS__";
+	constexpr std::string_view sectionSize = "__SIZE__";
+	constexpr std::string_view sectionEncodeType = "__ENCODE_TYPE__";
+
+	constexpr std::string_view strBegin = "---------BEGIN_MATRIX---------\r\n";
+	constexpr std::string_view strEnd = "\r\n---------END_MATRIX---------";
+
+	const size_t parametersLen = sectionParameters.length() + sectionSize.length() + sizeof(size_t) + sectionEncodeType.length() + sizeof(char);
+
+}
+
+
 
 //CoordinateWorkspace
 
@@ -183,7 +194,7 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 //	std::string is_RLE;
 //	if (RLE)
 //		is_RLE = "RLE";
-//	return Base64::Base64Encode(str + std::string(file_section_param) + std::string(file_size_param) + std::to_string(Isize) + std::string(file_Jsize_param) + std::to_string(Jsize) + std::string(file_encode_param) + is_RLE,
+//	return Base64::Base64Encode(str + std::string(sectionParameters) + std::string(sectionSize) + std::to_string(Isize) + std::string(file_Jsize_param) + std::to_string(Jsize) + std::string(sectionEncodeType) + is_RLE,
 //	Base64::EncodeType::standard);
 //}
 //
@@ -205,15 +216,15 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 //{
 //	std::string encoded_str = Base64::Base64Decode(str,Base64::EncodeType::standard);
 //	if(encoded_str.empty()) throw std::runtime_error("String for Base64_decode is empty!");
-//	const std::string_view parameters = std::string_view(encoded_str).substr(encoded_str.find(file_section_param), encoded_str.length() - encoded_str.find(file_section_param));
-//	const std::string_view Isize = parameters.substr(parameters.find(file_size_param) + file_size_param.length(), parameters.find(file_Jsize_param)- parameters.find(file_size_param) - file_size_param.length());
-//	const std::string_view Jsize = parameters.substr(parameters.find(file_Jsize_param) + file_Jsize_param.length(), parameters.find(file_encode_param)- parameters.find(file_Jsize_param) - file_Jsize_param.length());
+//	const std::string_view parameters = std::string_view(encoded_str).substr(encoded_str.find(sectionParameters), encoded_str.length() - encoded_str.find(sectionParameters));
+//	const std::string_view Isize = parameters.substr(parameters.find(sectionSize) + sectionSize.length(), parameters.find(file_Jsize_param)- parameters.find(sectionSize) - sectionSize.length());
+//	const std::string_view Jsize = parameters.substr(parameters.find(file_Jsize_param) + file_Jsize_param.length(), parameters.find(sectionEncodeType)- parameters.find(file_Jsize_param) - file_Jsize_param.length());
 //
 //	resize(std::stoull(std::string(Isize)), std::stoull(std::string(Jsize)));
 //
 //	if (parameters.find("RLE") == std::string::npos)
 //	{
-//		const std::string_view str_matr = std::string_view(encoded_str).substr(0, encoded_str.find(file_size_param));
+//		const std::string_view str_matr = std::string_view(encoded_str).substr(0, encoded_str.find(sectionSize));
 //		std::string_view::const_iterator it = str_matr.begin();
 //		for (size_t i = 0; i < RowCnt; i++)
 //			for (size_t j = 0; j < ColCnt; j++)
@@ -227,14 +238,59 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 //	return tmp;
 //}
 
+void
+LayoutMatrix::DecodeSz(
+	std::string_view EncodedSzStr,
+	uint32_t &ColCnt,
+	uint32_t &RowCnt)
+{
+	if(EncodedSzStr.length() != sizeof(size_t)) { throw std::invalid_argument("Invalid size section!");}
+
+	size_t sz = 0;
+	for(int32_t i = EncodedSzStr.length() - 1, offs = 0; 0 != i; i--, offs++)
+	{
+		sz |= EncodedSzStr[i] << offs * 8;
+	}
+	ColCnt = sz & std::numeric_limits<uint32_t>::max();
+	RowCnt = (sz >> 8 * sizeof(uint32_t)) & std::numeric_limits<uint32_t>::max();
+}
+
+
+void 
+LayoutMatrix::DecodeEncodings(
+	char EncodedEncodings,
+	bool &Rle,
+	bool &Base64)
+{
+	
+
+}
 
 LayoutMatrix
 LayoutMatrix::DecodeHash(
 	std::string_view Hash)
 {
 	if(Hash.empty()) { throw std::invalid_argument("Invalid hash");}
-	return LayoutMatrix();
+
+	if(Hash.substr(0,MatrixEncodingParamters::strBegin.length()) != MatrixEncodingParamters::strBegin) { throw std::invalid_argument("No begin section!"); }
+	if(const size_t endStrLen = MatrixEncodingParamters::strEnd.length();
+		 Hash.substr(Hash.length() - endStrLen - 1,endStrLen) != MatrixEncodingParamters::strEnd) { throw std::invalid_argument("No end section");}
 	
+
+	Hash = Hash.substr(MatrixEncodingParamters::strBegin.length(), Hash.length() - MatrixEncodingParamters::strBegin.length() - MatrixEncodingParamters::strEnd.length());
+
+	std::string_view parameters = Hash.substr(Hash.length() - MatrixEncodingParamters::parametersLen);
+	if(parameters.find(MatrixEncodingParamters::sectionParameters) == std::string::npos) { throw std::invalid_argument("No parameters section");}
+
+	parameters = parameters.substr(MatrixEncodingParamters::sectionParameters.length());
+	if(parameters.substr(MatrixEncodingParamters::sectionSize.length()) != MatrixEncodingParamters::sectionSize) { throw std::invalid_argument("No size section");}
+
+	
+		
+	bool isRle = false;
+	bool isBase64 = false;
+	uint32_t colCnt = 0;
+	uint32_t rowCnt = 0;
 
 }
 
@@ -268,12 +324,24 @@ LayoutMatrix::EncodeHash(
 	const LayoutMatrix &Matrix)	
 {
 	if(!Matrix) { throw std::invalid_argument("Invalid matrix");}
-	
-	bool isRle = false;
-	std::stringstream encodedStr;
-	if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { encodedStr << Rle::Encode(Matrix); isRle = true;}
-	else { encodedStr << Matrix.ToString();}
 
-	encodedStr << file_section_param << file_size_param << Matrix.EncodeSz() << file_encode_param<< Matrix.EncodeEncodings(isRle,true);
-	return Base64::Base64Encode(encodedStr.str(), Base64::EncodeType::radix64);
+	bool isRle = false;
+	std::string resultStr;
+	if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { resultStr = Rle::Encode(Matrix); isRle = true;}
+	else { resultStr = Matrix.ToString();}
+
+	resultStr.reserve( resultStr.length() + MatrixEncodingParamters::sectionParameters.length() + MatrixEncodingParamters::parametersLen);
+
+	resultStr += MatrixEncodingParamters::sectionParameters;
+	resultStr += MatrixEncodingParamters::sectionSize;
+	resultStr += Matrix.EncodeSz();
+	resultStr += MatrixEncodingParamters::sectionEncodeType;
+	resultStr += Matrix.EncodeEncodings(isRle,true);
+
+	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::radix64);
+	resultStr.reserve(MatrixEncodingParamters::strBegin.length() + resultStr.length() + MatrixEncodingParamters::strEnd.length());
+	
+	resultStr.insert(0,MatrixEncodingParamters::strBegin);
+	resultStr += MatrixEncodingParamters::strEnd;
+	return resultStr;
 }

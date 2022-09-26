@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-#define MATRIX_IMPLEMENTED
+//#define MATRIX_IMPLEMENTED
 #ifdef MATRIX_IMPLEMENTED
 #include "Include/LayoutMatrix.h"
 #endif //!MATRIX_IMPLEMENTED

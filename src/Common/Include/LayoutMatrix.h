@@ -59,6 +59,8 @@ public:
 
 	std::string EncodeSz() const;
 	char EncodeEncodings(bool Rle, bool Base64) const;
+	void DecodeSz(std::string_view EncodedSzStr, uint32_t &ColCnt, uint32_t &RowCnt);
+	void DecodeEncodings(char EncodedEncodings, bool &Rle, bool &Base64);
 private:
 	
 
