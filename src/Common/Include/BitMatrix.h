@@ -7,6 +7,7 @@
 #include <cassert>
 #include <random>
 #include <ctime>
+#include <string_view>
 
 
 #define BIT(n)         (1U << (n))
@@ -32,8 +33,10 @@ public:
 	uint32_t           GetJsize() const;
 	std::string      ToString() const;
 
+	static BitMatrix FromString(std::string_view Str, uint32_t RowCnt, uint32_t ColCnt);
 
 	void             Set(size_t i, size_t j, bool Value);
+	void 				  SetByte(size_t iBytePos, size_t jBytePos, char Value);
 	void             SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd, bool Value);
 
 

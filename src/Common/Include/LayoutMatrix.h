@@ -57,10 +57,10 @@ public:
 	static LayoutMatrix DecodeHash(std::string_view Hash);
 	static std::string  EncodeHash(const LayoutMatrix &Matrix);
 
-	std::string EncodeSz() const;
-	char EncodeEncodings(bool Rle, bool Base64) const;
-	void DecodeSz(std::string_view EncodedSzStr, uint32_t &ColCnt, uint32_t &RowCnt);
-	void DecodeEncodings(char EncodedEncodings, bool &Rle, bool &Base64);
+	static std::string EncodeSz(uint32_t RowCnt, uint32_t ColCnt);
+	static char EncodeEncodings(bool Rle, bool Base64);
+	static void DecodeSz(std::string_view EncodedSzStr, uint32_t &ColCnt, uint32_t &RowCnt);
+	static void DecodeEncodings(char EncodedEncodings, bool &Rle, bool &Base64);
 private:
 	
 

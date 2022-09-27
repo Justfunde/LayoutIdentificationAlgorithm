@@ -16,7 +16,8 @@ namespace MatrixEncodingParamters
 	constexpr std::string_view strEnd = "\r\n---------END_MATRIX---------";
 
 	const size_t parametersLen = sectionParameters.length() + sectionSize.length() + sizeof(size_t) + sectionEncodeType.length() + sizeof(char);
-
+	constexpr uint8_t rleBitPos = 1;
+	constexpr uint8_t base64BitPos = 0;
 }
 
 
@@ -262,7 +263,8 @@ LayoutMatrix::DecodeEncodings(
 	bool &Rle,
 	bool &Base64)
 {
-	
+	Rle = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings),MatrixEncodingParamters::rleBitPos);
+	Base64 = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings),MatrixEncodingParamters::rleBitPos);
 
 }
 
@@ -276,28 +278,48 @@ LayoutMatrix::DecodeHash(
 	if(const size_t endStrLen = MatrixEncodingParamters::strEnd.length();
 		 Hash.substr(Hash.length() - endStrLen - 1,endStrLen) != MatrixEncodingParamters::strEnd) { throw std::invalid_argument("No end section");}
 	
+	bool isBase64 = false;
+	bool isRle = false;
+	uint32_t rowCnt = 0;
+	uint32_t colCnt = 0;
 
 	Hash = Hash.substr(MatrixEncodingParamters::strBegin.length(), Hash.length() - MatrixEncodingParamters::strBegin.length() - MatrixEncodingParamters::strEnd.length());
+
+
+	std::string decodedHash = Base64::Base64Decode(Hash, Base64::EncodeType::radix64);
+	Hash = decodedHash;
 
 	std::string_view parameters = Hash.substr(Hash.length() - MatrixEncodingParamters::parametersLen);
 	if(parameters.find(MatrixEncodingParamters::sectionParameters) == std::string::npos) { throw std::invalid_argument("No parameters section");}
 
 	parameters = parameters.substr(MatrixEncodingParamters::sectionParameters.length());
-	if(parameters.substr(MatrixEncodingParamters::sectionSize.length()) != MatrixEncodingParamters::sectionSize) { throw std::invalid_argument("No size section");}
+	if(parameters.substr(0,MatrixEncodingParamters::sectionSize.length()) != MatrixEncodingParamters::sectionSize) { throw std::invalid_argument("No size section");}
 
+
+	parameters = parameters.substr(MatrixEncodingParamters::sectionSize.length());
+	LayoutMatrix::DecodeSz(parameters.substr(0,sizeof(size_t)),colCnt,rowCnt);
 	
-		
-	bool isRle = false;
-	bool isBase64 = false;
-	uint32_t colCnt = 0;
-	uint32_t rowCnt = 0;
+	parameters = parameters.substr(sizeof(size_t));
 
+	if(parameters.substr(0,MatrixEncodingParamters::sectionEncodeType.length()) != MatrixEncodingParamters::sectionParameters) { throw std::invalid_argument("No encoding rule section");}
+	
+	parameters = parameters.substr(MatrixEncodingParamters::sectionEncodeType.length());
+	
+	LayoutMatrix::DecodeEncodings(parameters[0], isRle, isBase64);
+
+	if(isRle)
+	{
+		return Rle::DecodeMatrix(Hash,rowCnt,colCnt);
+	}
+	return LayoutMatrix::FromString(Hash,rowCnt,colCnt);
 }
 
 std::string 
-LayoutMatrix::EncodeSz() const
+LayoutMatrix::EncodeSz(
+	uint32_t RowCnt,
+	uint32_t ColCnt)
 {
-	size_t encodedSz = ((GetIsize() << (sizeof(uint32_t) * 8)) & GetJsize());
+	size_t encodedSz = ((RowCnt << (sizeof(uint32_t) * 8)) & ColCnt);
 	std::string encodedSzStr(sizeof(encodedSz), 0);
 
 	char* pData = reinterpret_cast<char*>(&encodedSz);
@@ -311,11 +333,11 @@ LayoutMatrix::EncodeSz() const
 char
 LayoutMatrix::EncodeEncodings (
 	bool Rle,
-	bool Base64) const 
+	bool Base64) 
 {
 	uint8_t retVal = 0;
-	if(Rle) { ByteHandler::SetBit(retVal,0,1); }
-	if(Base64) { ByteHandler::SetBit(retVal,1,1); }
+	if(Rle) { ByteHandler::SetBit(retVal,MatrixEncodingParamters::rleBitPos, 1); }
+	if(Base64) { ByteHandler::SetBit(retVal,MatrixEncodingParamters::base64BitPos, 1); }
 	return static_cast<char>(retVal);
 }
 
@@ -334,9 +356,9 @@ LayoutMatrix::EncodeHash(
 
 	resultStr += MatrixEncodingParamters::sectionParameters;
 	resultStr += MatrixEncodingParamters::sectionSize;
-	resultStr += Matrix.EncodeSz();
+	resultStr += LayoutMatrix::EncodeSz(Matrix.GetIsize(), Matrix.GetJsize());
 	resultStr += MatrixEncodingParamters::sectionEncodeType;
-	resultStr += Matrix.EncodeEncodings(isRle,true);
+	resultStr += LayoutMatrix::EncodeEncodings(isRle,true);
 
 	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::radix64);
 	resultStr.reserve(MatrixEncodingParamters::strBegin.length() + resultStr.length() + MatrixEncodingParamters::strEnd.length());

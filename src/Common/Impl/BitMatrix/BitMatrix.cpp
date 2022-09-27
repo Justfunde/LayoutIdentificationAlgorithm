@@ -167,6 +167,13 @@ void BitMatrix::Set(size_t i, size_t j, bool Value)
 	}
 }
 
+void BitMatrix::SetByte(size_t iBytePos, size_t jBytePos, char Value)
+{
+	if(iBytePos >= RowCnt || jBytePos > ColCnt) { throw std::invalid_argument("Invalid index");}
+
+	Bitmap[iBytePos][jBytePos] = Value;
+}
+
 
 void BitMatrix::UnsafeSet(size_t i, size_t j, bool Value)
 {
@@ -344,6 +351,8 @@ std::string BitMatrix::ToString() const
 	return str;
 }
 
+
+
 //utility methods
 
 
@@ -393,4 +402,24 @@ void BitMatrix::Reset()
 	Jsize = 0;
 	ColCnt = 0;
 	RowCnt = 0;
+}
+
+
+BitMatrix
+BitMatrix::FromString(
+	std::string_view Str,
+	uint32_t RowCnt,
+	uint32_t ColCnt)
+{
+	if(Str.length() != RowCnt * ColCnt) { throw std::invalid_argument("Invalid strlen");}
+
+	BitMatrix matrix(RowCnt,ColCnt);
+	for(uint32_t i = 0, strIndex = 0; i < RowCnt / 8 + (RowCnt % 8 != 0 ); i++)
+	{
+		for(uint32_t j = 0; j < ColCnt / 8 + (ColCnt % 8 != 0 ); j++)
+		{
+			matrix.SetByte(i,j,Str[strIndex++]);
+		}
+	}
+	return matrix;
 }
