@@ -15,4 +15,7 @@ set(OUTPUT_RELEASE_DIR "{CMAKE_CURRENT_LIST_DIR}/Release")
 
 set(CMAKE_MODULE_PATH "{CMAKE_CURRENT_LIST_DIR}/cmake")
 set(DOXYGET_PATH "{CMAKE_CURRENT_LIST_DIR}/doxygen")
+
+include(UnitTestModule.cmake)
+
 add_subdirectory(src)

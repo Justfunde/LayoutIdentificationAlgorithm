@@ -105,7 +105,6 @@ std::string
    return decodedStr;
 }
 
-#ifdef MATRIX_IMPLEMENTED
 double
  Rle::CalcCompressionCoeffitient(
 	const LayoutMatrix &Matrix)
@@ -189,4 +188,3 @@ Rle::DecodeMatrix(
 	}
 	return matrix;
 }
-#endif //!MATRIX_IMPLEMENTED
