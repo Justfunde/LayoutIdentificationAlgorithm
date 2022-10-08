@@ -17,6 +17,6 @@ macro(add_unit_test)
             RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/BuiltTests/Debug"
             RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/BuiltTests/Release")
 
-      add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/BuiltTests/${CMAKE_BUILD_TYPE}/Units COMMAND ${TEST_NAME})
+      add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/BuiltTests/${CMAKE_BUILD_TYPE} COMMAND ${TEST_NAME})
 
 endmacro(add_unit_test)
