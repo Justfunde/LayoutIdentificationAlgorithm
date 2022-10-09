@@ -97,8 +97,7 @@ InBase64StandardDecode(
 {
     if (0 == EncodedStr.size() ) { throw std::invalid_argument("Invalid buffer to decode"); }
     
-    std::string decodedStr;
-    decodedStr.reserve(EncodedStr.length());
+    std::string decodedStr(EncodedStr.length(),0);
 
     size_t j = 0;
     for (size_t i = 0 ; i < EncodedStr.length(); i += 4)
@@ -118,7 +117,7 @@ InBase64StandardDecode(
        }
        else break;
     }
-    decodedStr.shrink_to_fit();
+    decodedStr.resize(j);
     return decodedStr;
 }
 

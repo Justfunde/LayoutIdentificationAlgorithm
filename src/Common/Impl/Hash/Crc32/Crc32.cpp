@@ -72,7 +72,7 @@ static const uint32_t g_crc32Table[] =
 };
 
 
-CRC32_HASH CalcHash(const char* Data, uint32_t DataSz)
+CRC32_HASH Crc32::CalcHash(const char* Data, uint32_t DataSz)
 {  
    if(nullptr == Data || 0 == DataSz) { throw std::invalid_argument("Invalid CRC32 argument!");}  
 

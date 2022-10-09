@@ -7,6 +7,7 @@ macro(add_unit_test)
 
       add_executable(${TEST_NAME} ${TEST_SOURCES})
 
+      target_compile_definitions(${TEST_NAME} PRIVATE "FUNCTION_NAME=${TEST_NAME}")
       target_compile_definitions(${TEST_NAME} PRIVATE ${TEST_DEFINITIONS})
       
       target_link_libraries(${TEST_NAME} PRIVATE ${TEST_LIBRARIES})
