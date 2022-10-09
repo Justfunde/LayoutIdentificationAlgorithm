@@ -13,10 +13,10 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/Output")
 set(OUTPUT_DEBUG_DIR "{CMAKE_CURRENT_LIST_DIR}/Debug")
 set(OUTPUT_RELEASE_DIR "{CMAKE_CURRENT_LIST_DIR}/Release")
 
-set(CMAKE_MODULE_PATH "{CMAKE_CURRENT_LIST_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 set(DOXYGET_PATH "{CMAKE_CURRENT_LIST_DIR}/doxygen")
 
-include(UnitTestModule.cmake)
+include(UnitTestModule)
 include(CTest)
 
 add_subdirectory(src)
