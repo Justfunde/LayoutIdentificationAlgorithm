@@ -147,12 +147,11 @@ InBase64EncodeWithSeparator(
     std::string resStr;
     resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
 
-   for (size_t len = encodedStrView.length(); len > EachStrLen;)
+   for (; encodedStrView.length() > EachStrLen;)
    {
       resStr += encodedStrView.substr(0, EachStrLen);
       resStr += SeparatorStr;
       encodedStrView = encodedStrView.substr(EachStrLen);
-      len = encodedStrView.length();
    }
     resStr += encodedStrView;
     
