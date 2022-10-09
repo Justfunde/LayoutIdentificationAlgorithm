@@ -102,6 +102,7 @@ InBase64StandardDecode(
     size_t j = 0;
     for (size_t i = 0 ; i < EncodedStr.length(); i += 4)
     {
+       if (i >= EncodedStr.length()) { break; }
        decodedStr[j] = InGetSymbPosition(EncodedStr[i]) << 2;
        decodedStr[j++] |= (InGetSymbPosition(EncodedStr[i + 1]) >> 4);
        if ('=' != EncodedStr[i + 2] && '.' != EncodedStr[i + 2])
@@ -142,13 +143,22 @@ InBase64EncodeWithSeparator(
     if (0 == SeparatorStr.length() || 0 == EachStrLen) { throw std::invalid_argument("Invalid separator encode parameters"); }
     
     std::string encodedStr =  InBase64Encode(Buf2Encode,false);
-    encodedStr.reserve(encodedStr.length() + encodedStr.length() / EachStrLen + 1);
+    std::string_view encodedStrView = encodedStr;
 
-    for (size_t i = 1 , additionalOffset = 0; i < encodedStr.length() / EachStrLen + 1; additionalOffset+= SeparatorStr.length())
+    std::string resStr;
+    resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
+   
+    //todo: fix situation when encodedStrView.length() % EachStrLen == 0 and resStr does not need /r/n at the end;
+    for (size_t i = 0, iterCnt = encodedStrView.length() / EachStrLen + 1; i < iterCnt ; i++)
     {
-        encodedStr.insert(i * EachStrLen + additionalOffset, SeparatorStr);
+       resStr += encodedStrView.substr(0, EachStrLen);
+       resStr += SeparatorStr;
+       encodedStrView = encodedStrView.substr(EachStrLen);
     }
-    return encodedStr;
+    resStr += encodedStrView;
+    
+    resStr.shrink_to_fit();
+    return resStr;
 }
 
 static
