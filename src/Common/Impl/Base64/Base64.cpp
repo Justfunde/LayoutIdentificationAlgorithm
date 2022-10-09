@@ -1,10 +1,10 @@
 ﻿/**
 * @file     Base64.c
 * @brief    Определение функций для работы с Base64
-* @ingroup  BDMAPI
 */
 
 #include <stdexcept>
+#include <iostream>
 
 #include "Include/Crc32.h"
 #include "Include/Base64.h"
@@ -128,10 +128,12 @@ std::string
 InBase64DecodeWithSeparators(
   std::string EncodedStr)
 {
-    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\n'));
-    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\r'));
+    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\n'),EncodedStr.end());
+    EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\r'), EncodedStr.end());
+    std::cout << std::endl << EncodedStr << std::endl;
     return InBase64StandardDecode(EncodedStr);
 }
+
 
 static
 std::string
@@ -144,16 +146,26 @@ InBase64EncodeWithSeparator(
     
     std::string encodedStr =  InBase64Encode(Buf2Encode,false);
     std::string_view encodedStrView = encodedStr;
-
+    std::cout << encodedStr << std::endl;
     std::string resStr;
     resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
-   
-    //todo: fix situation when encodedStrView.length() % EachStrLen == 0 and resStr does not need /r/n at the end;
-    for (;encodedStrView.length() > EachStrLen;)
+    try
     {
-       resStr += encodedStrView.substr(0, EachStrLen);
-       resStr += SeparatorStr;
-       encodedStrView = encodedStrView.substr(EachStrLen);
+
+       //todo: fix situation when encodedStrView.length() % EachStrLen == 0 and resStr does not need /r/n at the end;
+       std::cout << Buf2Encode.length() << std::endl;
+       for (size_t len = encodedStrView.length(); len > EachStrLen;)
+       {
+          resStr += encodedStrView.substr(0, EachStrLen);
+          resStr += SeparatorStr;
+          encodedStrView = encodedStrView.substr(EachStrLen);
+          len = encodedStrView.length();
+       }
+    }
+    catch (std::exception& ex)
+    {
+       int32_t i = 0;
+       i++;
     }
     resStr += encodedStrView;
     
@@ -191,7 +203,8 @@ InRadix64Encode(
    CRC32_HASH hash = Crc32::CalcHash(encodedStr.c_str(),encodedStr.length());
    if(0 == hash) { throw std::runtime_error("Crc32 hash was not calced!");}
 
-   return encodedStr + InBase64Encode(std::string_view(reinterpret_cast<char*>(&hash),sizeof(hash)), false);
+   std::string str = InBase64Encode(std::string(reinterpret_cast<char*>(&hash),sizeof(hash)), false);
+   return encodedStr + InBase64Encode(std::string(reinterpret_cast<char*>(&hash),sizeof(hash)), false);
 }
 
 
@@ -203,12 +216,12 @@ InRadix64Decode(
    if(Str2Decode.empty()) { return "";}
    if(Str2Decode.length() <= g_radixHashLen) { throw std::invalid_argument("Invalid Radix64 str length!");}
 
-   const std::string oldHashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen - 1);
+   const std::string crc32HashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen);
    const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - g_radixHashLen);
 
    CRC32_HASH calcedHash = Crc32::CalcHash(noHashStr.c_str(),noHashStr.length());
    const std::string calcedHashStr = InBase64Encode(std::string_view(reinterpret_cast<char*>(&calcedHash),sizeof(calcedHash)), false);
-   if(calcedHashStr != oldHashStr) { throw std::runtime_error("Crc32 hash did not match!");}
+   if(calcedHashStr != crc32HashStr) { throw std::runtime_error("Crc32 hash did not match!");}
    return InBase64DecodeWithSeparators(noHashStr);
 }
 

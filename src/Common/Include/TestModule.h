@@ -3,10 +3,32 @@
 
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 
 #define STRINGIFY(Name) #Name
 #define WSTRINGIFY(Name) L #Name
+
+#define STATUS_SUCCESS (0)
+#define STATUS_FAILURE (-1)
+
+#define BEGIN_TEST_JOB\
+   int32_t status = STATUS_SUCCESS;\
+   try{\
+   do{\
+
+#define END_TEST_JOB\
+   }while(false);\
+   }\
+   catch(const std::exception& ex)\
+   {\
+      std::cerr << "Smth gone bad" << ex.what() << std::endl;\
+      status = STATUS_FAILURE;\
+      return status;\
+   }\
+   return status;\
+
+
 
 #define TEST_ASSERT(lhsExpr, rhsExpr, operator, flag)\
    if((lhsExpr) operator (rhsExpr))\
