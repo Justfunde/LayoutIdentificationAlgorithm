@@ -13,7 +13,7 @@ InCreateRandomString()
    static std::random_device randomDevice;
    static std::mt19937 generator(randomDevice());
    static std::uniform_int_distribution<int32_t> symbDistr(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
-   static std::uniform_int_distribution<size_t> strlenDistr(200,250);
+   static std::uniform_int_distribution<size_t> strlenDistr(10000,10000);
    
    std::string retVal;
    const size_t strLen = strlenDistr(generator);
@@ -87,6 +87,7 @@ Test__Base64Mime_Fuzzing()
       catch(const std::exception& e)
       {
          std::cerr << e.what() << '\n';
+         status = -1;
       }
    } while (false);
    return status;
@@ -118,6 +119,7 @@ Test__Base64Pem_Fuzzing()
       catch(const std::exception& e)
       {
          std::cerr << e.what() << '\n';
+         status = -1;
       }
    } while (false);
    return status;
@@ -150,6 +152,7 @@ Test__Radix64_Fuzzing()
       catch(const std::exception& e)
       {
          std::cerr << e.what() << '\n';
+         status = -1;
       }
    } while (false);
    return status;

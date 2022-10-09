@@ -8,17 +8,12 @@
 namespace ByteHandler
 {
 
-   inline void SetBit(uint8_t *Arr, size_t ArrSz, size_t Pos, bool Value);
-
-   inline bool GetBit(uint8_t *Arr, size_t ArrSz, size_t Pos);
-
-   inline void SetBit(uint8_t &Byte, uint8_t Pos, bool Value);
-
-   inline bool GetBit(uint8_t Byte, uint8_t Pos);
-
-   inline uint8_t GetHigherBitPos(uint8_t Byte);
-
-   inline uint8_t GetLowerBitPos( uint8_t Byte);
+   void SetBit(uint8_t *Arr, size_t ArrSz, size_t Pos, bool Value);
+   bool GetBit(uint8_t *Arr, size_t ArrSz, size_t Pos);
+   void SetBit(uint8_t &Byte, uint8_t Pos, bool Value);
+   bool GetBit(uint8_t Byte, uint8_t Pos);
+   uint8_t GetHigherBitPos(uint8_t Byte);
+   uint8_t GetLowerBitPos( uint8_t Byte);
 }
 
 #endif //!__BYTE_HANDLER_H__

@@ -149,7 +149,7 @@ InBase64EncodeWithSeparator(
     resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
    
     //todo: fix situation when encodedStrView.length() % EachStrLen == 0 and resStr does not need /r/n at the end;
-    for (size_t i = 0, iterCnt = encodedStrView.length() / EachStrLen + 1; i < iterCnt ; i++)
+    for (;encodedStrView.length() > EachStrLen;)
     {
        resStr += encodedStrView.substr(0, EachStrLen);
        resStr += SeparatorStr;

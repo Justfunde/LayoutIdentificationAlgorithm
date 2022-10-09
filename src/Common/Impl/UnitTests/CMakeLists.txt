@@ -1,1 +1,2 @@
 add_subdirectory(Base64Test)
+add_subdirectory(ByteHandlerTest)
