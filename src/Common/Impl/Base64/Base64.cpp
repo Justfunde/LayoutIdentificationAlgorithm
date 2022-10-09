@@ -4,7 +4,6 @@
 */
 
 #include <stdexcept>
-#include <iostream>
 
 #include "Include/Crc32.h"
 #include "Include/Base64.h"
@@ -130,7 +129,6 @@ InBase64DecodeWithSeparators(
 {
     EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\n'),EncodedStr.end());
     EncodedStr.erase(std::remove(EncodedStr.begin(),EncodedStr.end(),'\r'), EncodedStr.end());
-    std::cout << std::endl << EncodedStr << std::endl;
     return InBase64StandardDecode(EncodedStr);
 }
 
@@ -146,27 +144,16 @@ InBase64EncodeWithSeparator(
     
     std::string encodedStr =  InBase64Encode(Buf2Encode,false);
     std::string_view encodedStrView = encodedStr;
-    std::cout << encodedStr << std::endl;
     std::string resStr;
     resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
-    try
-    {
 
-       //todo: fix situation when encodedStrView.length() % EachStrLen == 0 and resStr does not need /r/n at the end;
-       std::cout << Buf2Encode.length() << std::endl;
-       for (size_t len = encodedStrView.length(); len > EachStrLen;)
-       {
-          resStr += encodedStrView.substr(0, EachStrLen);
-          resStr += SeparatorStr;
-          encodedStrView = encodedStrView.substr(EachStrLen);
-          len = encodedStrView.length();
-       }
-    }
-    catch (std::exception& ex)
-    {
-       int32_t i = 0;
-       i++;
-    }
+   for (size_t len = encodedStrView.length(); len > EachStrLen;)
+   {
+      resStr += encodedStrView.substr(0, EachStrLen);
+      resStr += SeparatorStr;
+      encodedStrView = encodedStrView.substr(EachStrLen);
+      len = encodedStrView.length();
+   }
     resStr += encodedStrView;
     
     resStr.shrink_to_fit();
