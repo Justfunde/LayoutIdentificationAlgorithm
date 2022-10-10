@@ -67,13 +67,8 @@ private:
 	std::string EncodeMatrix();
 	BitMatrix DecodeHash();
 
-	std::pair<std::string, double> RLE_encode();
-	void RLE_decode(const std::string& str);
 
 
-	std::string Base64_encode(const std::string& str,bool RLE);
-	std::string Base64_decode(const std::string& str);
-	inline char unsafeWriteLastBit(char byte,bool value);
 };
 
 #endif //!__LAYOUT_MATRIX_H__

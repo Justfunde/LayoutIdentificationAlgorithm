@@ -101,7 +101,12 @@ BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
 
 bool operator==(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept
 {
-	return static_cast<bool>(BitMatrix::Compare(FirstMatr, SecondMatr)) == 1;
+	return BitMatrix::Compare(FirstMatr, SecondMatr) >= 0.9999;
+}
+
+bool operator!=(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept
+{
+	return BitMatrix::Compare(FirstMatr, SecondMatr) <= 0.9999;
 }
 
 bool BitMatrix::operator!() noexcept

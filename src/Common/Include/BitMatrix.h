@@ -14,10 +14,10 @@
 
 class BitMatrix{
 protected:
-	int8_t**      	            Bitmap;
+	int8_t**      	              Bitmap;
 	uint32_t                     Jsize, Isize;
 	uint32_t                     ColCnt, RowCnt;
-	bool                       IsAlloced;
+	bool                         IsAlloced;
 	
 public:
 	BitMatrix() :Bitmap(nullptr), ColCnt(0), RowCnt(0), Jsize(0), Isize(0), IsAlloced(false) {}
@@ -70,6 +70,7 @@ protected:
 public:
 	friend BitMatrix  operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr);
 	friend bool       operator==(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept;
+	friend bool operator!=(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept;
 	friend class LayoutMatrix;
 };
 

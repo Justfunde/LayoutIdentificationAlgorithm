@@ -87,5 +87,23 @@ Test__BitMatrixFuzzing()
    END_TEST_JOB
 }
 
+int32_t
+Test__BitMatrixEncodeFuzzing()
+{
+   size_t cycleCnt = 1000;
+   BEGIN_TEST_JOB
+
+   while(cycleCnt--)
+   {
+      LayoutMatrix matrix(InRandMatrixSz(),InRandMatrixSz());
+
+      matrix.Randm();
+
+      TEST_ASSERT(static_cast<BitMatrix>(LayoutMatrix::DecodeHash(LayoutMatrix::EncodeHash(matrix))),static_cast<BitMatrix>(matrix), !=, status);
+   }
+
+   END_TEST_JOB
+}
+
 
 TEST_MAIN()

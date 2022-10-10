@@ -49,7 +49,7 @@ namespace MatrixEncodingParamters
 LayoutMatrix::LayoutMatrix(const std::string& in_hash)
 {
 	try {
-		RLE_decode(Base64_decode(in_hash));
+		//RLE_decode(Base64_decode(in_hash));
 	}
 	catch (const std::exception& exception)
 	{
