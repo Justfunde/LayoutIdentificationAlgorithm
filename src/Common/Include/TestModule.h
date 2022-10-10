@@ -12,6 +12,10 @@
 #define STATUS_SUCCESS (0)
 #define STATUS_FAILURE (-1)
 
+#define ASSERT_IF_ERROR()\
+if(STATUS_FAILURE == status) { break;}\
+
+
 #define BEGIN_TEST_JOB\
    int32_t status = STATUS_SUCCESS;\
    try{\
@@ -22,7 +26,7 @@
    }\
    catch(const std::exception& ex)\
    {\
-      std::cerr << "Smth gone bad" << ex.what() << std::endl;\
+      std::cerr << "Exception happened :( Error:" << ex.what() << std::endl;\
       status = STATUS_FAILURE;\
       return status;\
    }\

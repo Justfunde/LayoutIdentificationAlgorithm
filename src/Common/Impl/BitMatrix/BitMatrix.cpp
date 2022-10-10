@@ -7,8 +7,8 @@ constexpr uint8_t g_BitsInByte = 8;
 BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
 {
 	try{
-	RowCnt = RowCnt;
-	ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
+	this->RowCnt = RowCnt;
+	this->ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
 	
 	AllocMatrix();
 	}
