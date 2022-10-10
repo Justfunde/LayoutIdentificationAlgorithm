@@ -40,7 +40,7 @@ Test__Base64Standard_Fuzzing()
    {
       nonEncodedStr = InCreateRandomString();
       encodedStr = Base64Encode(nonEncodedStr,EncodeType::standard);
-      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::standard),!=,status);
+    TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::standard),!=);
    }
    END_TEST_JOB
 }
@@ -60,7 +60,7 @@ Test__Base64Mime_Fuzzing()
       nonEncodedStr = InCreateRandomString();
       encodedStr = Base64Encode(nonEncodedStr,EncodeType::mime);
       std::cout << encodedStr;
-      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::mime),!=,status);
+      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::mime),!=);
    }
    END_TEST_JOB
 }
@@ -78,7 +78,7 @@ Test__Base64Pem_Fuzzing()
    {
       nonEncodedStr = InCreateRandomString();
       encodedStr = Base64Encode(nonEncodedStr,EncodeType::pem);
-      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::pem),!=,status);
+      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::pem),!=);
    }
    END_TEST_JOB
 }
@@ -97,7 +97,7 @@ Test__Radix64_Fuzzing()
    {
       nonEncodedStr = InCreateRandomString();
       encodedStr = Base64Encode(nonEncodedStr,EncodeType::radix64);
-      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::radix64),!=,status);
+      TEST_ASSERT(nonEncodedStr,Base64Decode(encodedStr,EncodeType::radix64),!=);
    }
    END_TEST_JOB
 }

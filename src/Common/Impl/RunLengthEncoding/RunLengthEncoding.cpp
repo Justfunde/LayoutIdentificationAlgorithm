@@ -170,10 +170,12 @@ Rle::DecodeMatrix(
 	size_t j = 0, k = 0;
 	for (size_t i = 0; i < Str.length(); i++)
 	{
-		uint8_t tmp = Str[i];
-		bool value = ByteHandler::GetBit(tmp,g_lastBitPos);
-		ByteHandler::SetBit(tmp,g_lastBitPos,0);
-
+		try
+		{
+			uint8_t tmp = Str[i];
+			bool value = ByteHandler::GetBit(tmp, g_lastBitPos);
+			ByteHandler::SetBit(tmp, g_lastBitPos, 0);
+		
 		while (tmp != 0)
 		{
 			matrix.Set(k, j, value);
@@ -184,6 +186,12 @@ Rle::DecodeMatrix(
 				j = 0;
 			}
 			tmp--;
+		}
+		}
+		catch (...)
+		{
+			int k = 5;
+			k++;
 		}
 	}
 	return matrix;

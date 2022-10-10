@@ -5,6 +5,8 @@
 
 #include <string_view>
 #include <sstream>
+#include <iostream>
+
 
 namespace MatrixEncodingParamters
 {
@@ -15,7 +17,7 @@ namespace MatrixEncodingParamters
 	constexpr std::string_view strBegin = "---------BEGIN_MATRIX---------\r\n";
 	constexpr std::string_view strEnd = "\r\n---------END_MATRIX---------";
 
-	const size_t parametersLen = sectionParameters.length() + sectionSize.length() + sizeof(size_t) + sectionEncodeType.length() + sizeof(char);
+	const size_t parametersLen = sectionParameters.length() + sectionSize.length() + 24 + sectionEncodeType.length() + sizeof(char);
 	constexpr uint8_t rleBitPos = 1;
 	constexpr uint8_t base64BitPos = 0;
 }
@@ -168,12 +170,12 @@ LayoutMatrix::DecodeSz(
 	uint32_t &ColCnt,
 	uint32_t &RowCnt)
 {
-	if(EncodedSzStr.length() != sizeof(size_t)) { throw std::invalid_argument("Invalid size section!");}
+	if(EncodedSzStr.length() != 16) { throw std::invalid_argument("Invalid size section!");}
 
 	size_t sz = 0;
-	for(int32_t i = EncodedSzStr.length() - 1, offs = 0; 0 != i; i--, offs++)
+	for(int32_t i = 0, offs = 0; i < EncodedSzStr.length(); i++, offs++)
 	{
-		sz |= EncodedSzStr[i] << offs * 8;
+		sz |= (size_t)EncodedSzStr[i] << (offs * 8);
 	}
 	ColCnt = sz & std::numeric_limits<uint32_t>::max();
 	RowCnt = (sz >> 8 * sizeof(uint32_t)) & std::numeric_limits<uint32_t>::max();
@@ -199,7 +201,7 @@ LayoutMatrix::DecodeHash(
 
 	if(Hash.substr(0,MatrixEncodingParamters::strBegin.length()) != MatrixEncodingParamters::strBegin) { throw std::invalid_argument("No begin section!"); }
 	if(const size_t endStrLen = MatrixEncodingParamters::strEnd.length();
-		 Hash.substr(Hash.length() - endStrLen - 1,endStrLen) != MatrixEncodingParamters::strEnd) { throw std::invalid_argument("No end section");}
+		 Hash.substr(Hash.length() - endStrLen,endStrLen) != MatrixEncodingParamters::strEnd) { throw std::invalid_argument("No end section");}
 	
 	bool isBase64 = false;
 	bool isRle = false;
@@ -215,24 +217,26 @@ LayoutMatrix::DecodeHash(
 	std::string_view parameters = Hash.substr(Hash.length() - MatrixEncodingParamters::parametersLen);
 	if(parameters.find(MatrixEncodingParamters::sectionParameters) == std::string::npos) { throw std::invalid_argument("No parameters section");}
 
+
 	parameters = parameters.substr(MatrixEncodingParamters::sectionParameters.length());
 	if(parameters.substr(0,MatrixEncodingParamters::sectionSize.length()) != MatrixEncodingParamters::sectionSize) { throw std::invalid_argument("No size section");}
 
 
 	parameters = parameters.substr(MatrixEncodingParamters::sectionSize.length());
-	LayoutMatrix::DecodeSz(parameters.substr(0,sizeof(size_t)),colCnt,rowCnt);
+	LayoutMatrix::DecodeSz(Base64::Base64Decode(parameters.substr(0,24),Base64::EncodeType::standard),colCnt,rowCnt);
 	
-	parameters = parameters.substr(sizeof(size_t));
+	parameters = parameters.substr(24);
 
-	if(parameters.substr(0,MatrixEncodingParamters::sectionEncodeType.length()) != MatrixEncodingParamters::sectionParameters) { throw std::invalid_argument("No encoding rule section");}
+	if(parameters.substr(0,MatrixEncodingParamters::sectionEncodeType.length()) != MatrixEncodingParamters::sectionEncodeType) { throw std::invalid_argument("No encoding rule section");}
 	
 	parameters = parameters.substr(MatrixEncodingParamters::sectionEncodeType.length());
 	
 	LayoutMatrix::DecodeEncodings(parameters[0], isRle, isBase64);
 
+	Hash = Hash.substr(0, Hash.length() - MatrixEncodingParamters::parametersLen);
 	if(isRle)
 	{
-		return Rle::DecodeMatrix(Hash,rowCnt,colCnt);
+		return Rle::DecodeMatrix(Base64::Base64Decode(Hash,Base64::EncodeType::standard), rowCnt, colCnt);
 	}
 	return LayoutMatrix::FromString(Hash,rowCnt,colCnt);
 }
@@ -242,7 +246,9 @@ LayoutMatrix::EncodeSz(
 	uint32_t RowCnt,
 	uint32_t ColCnt)
 {
-	size_t encodedSz = ((RowCnt << (sizeof(uint32_t) * 8)) & ColCnt);
+	size_t encodedSz = ColCnt;
+	encodedSz |= static_cast<size_t>(RowCnt) << 32;
+	//size_t encodedSz = (((size_t)RowCnt << (32)) & ((size_t)ColCnt) | 0xFFFFFFFF00000000);
 	std::string encodedSzStr(sizeof(encodedSz), 0);
 
 	char* pData = reinterpret_cast<char*>(&encodedSz);
@@ -250,7 +256,7 @@ LayoutMatrix::EncodeSz(
 	{
 		encodedSzStr += pData[i];
 	}
-	return encodedSzStr;
+	return Base64::Base64Encode(encodedSzStr,Base64::EncodeType::standard);
 }
 
 char
@@ -272,10 +278,13 @@ LayoutMatrix::EncodeHash(
 
 	bool isRle = false;
 	std::string resultStr;
-	if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { resultStr = Rle::Encode(Matrix); isRle = true;}
-	else { resultStr = Matrix.ToString();}
+	//if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { 
+	resultStr = Rle::Encode(Matrix); 
+	isRle = true;//}
+	//else { resultStr = Matrix.ToString();}
 
-	resultStr.reserve( resultStr.length() + MatrixEncodingParamters::sectionParameters.length() + MatrixEncodingParamters::parametersLen);
+
+	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::standard);
 
 	resultStr += MatrixEncodingParamters::sectionParameters;
 	resultStr += MatrixEncodingParamters::sectionSize;
@@ -288,5 +297,6 @@ LayoutMatrix::EncodeHash(
 	
 	resultStr.insert(0,MatrixEncodingParamters::strBegin);
 	resultStr += MatrixEncodingParamters::strEnd;
+	std::cout << resultStr;
 	return resultStr;
 }

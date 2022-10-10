@@ -9,39 +9,25 @@
 #define STRINGIFY(Name) #Name
 #define WSTRINGIFY(Name) L #Name
 
-#define STATUS_SUCCESS (0)
-#define STATUS_FAILURE (-1)
-
-#define ASSERT_IF_ERROR()\
-if(STATUS_FAILURE == status) { break;}\
 
 
 #define BEGIN_TEST_JOB\
-   int32_t status = STATUS_SUCCESS;\
    try{\
-   do{\
 
 #define END_TEST_JOB\
-   }while(false);\
    }\
    catch(const std::exception& ex)\
    {\
       std::cerr << "Exception happened :( Error:" << ex.what() << std::endl;\
-      status = STATUS_FAILURE;\
-      return status;\
+      return -1;\
    }\
-   return status;\
+   return 0;\
 
 
+#define TEST_ASSERT(lhsExpr, rhsExpr, operator)\
+   if((lhsExpr) operator (rhsExpr))  { throw std::runtime_error(std::string(std::string("Assertion failed in ") + std::string(__FILE__) + std::string(" on line "))  + std::to_string(__LINE__ )); }\
 
-#define TEST_ASSERT(lhsExpr, rhsExpr, operator, flag)\
-   if((lhsExpr) operator (rhsExpr))\
-   {\
-      std::cout << "Assertion failed in " << __FILE__ << " on line " << __LINE__ << "\n"; \
-      flag = -1;\
-      break;\
-   }\
-
+#define ASSERT() (throw std::runtime_error(std::string(std::string("Assertion failed in ") + std::string(__FILE__) + std::string(" on line "))  + std::to_string(__LINE__ )))
 
 #define EXEC_TEST_FUNCTION(STEP, FUNC)\
    const std::string infoStr(std::string(STRINGIFY(STEP)) + " step: '" STRINGIFY(FUNC) "' ");\
