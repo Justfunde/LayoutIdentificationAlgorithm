@@ -26,22 +26,22 @@ namespace MatrixEncodingParamters
 
 //CoordinateWorkspace
 
-//bool WorkspaceCoords::setAngleCoords(const Coord& leftTop, const Coord& rightBot)
-//{
-//	if (leftTop.x > rightBot.x || leftTop.y < rightBot.y)
-//		return false;
-//	this->leftTop = leftTop;
-//	this->rightBot = rightBot;
-//	return true;
-//}
-//
-//bool WorkspaceCoords::isInWorkspace(int32_t x, int32_t y)
-//{
-//	if (x >leftTop.x && x < rightBot.x)
-//		if (y < leftTop.y && y > rightBot.y)
-//			return true;
-//	return false;
-//}
+bool WorkspaceCoords::setAngleCoords(const Coord& leftTop, const Coord& rightBot)
+{
+	if (leftTop.x > rightBot.x || leftTop.y < rightBot.y)
+		return false;
+	this->leftTop = leftTop;
+	this->rightBot = rightBot;
+	return true;
+}
+
+bool WorkspaceCoords::isInWorkspace(int32_t x, int32_t y)
+{
+	if (x >leftTop.x && x < rightBot.x)
+		if (y < leftTop.y && y > rightBot.y)
+			return true;
+	return false;
+}
 
 
 //LayoutMatrix

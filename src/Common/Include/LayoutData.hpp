@@ -11,6 +11,8 @@ struct Units {
 struct Coord {
     int32_t x,
         y;
+    Coord():x(0),y(0) {}
+    Coord(int32_t x, int32_t y):x(x),y(y) {}
 };
 
 struct Property {

@@ -12,15 +12,15 @@
 #include <cmath>
 
 
-//struct WorkspaceCoords
-//{
-//	Coord leftTop, rightBot;
-//
-//public:
-//	WorkspaceCoords():leftTop({0,0}), rightBot({ 0,0 }) {}
-//	bool setAngleCoords(const Coord& leftTop, const Coord& rightBot);
-//	bool isInWorkspace(int32_t x, int32_t y);
-//};
+struct WorkspaceCoords
+{
+	Coord leftTop, rightBot;
+
+public:
+	WorkspaceCoords():leftTop({0,0}), rightBot({ 0,0 }) {}
+	bool setAngleCoords(const Coord& leftTop, const Coord& rightBot);
+	bool isInWorkspace(int32_t x, int32_t y);
+};
 
 class LayoutMatrix:public BitMatrix
 {

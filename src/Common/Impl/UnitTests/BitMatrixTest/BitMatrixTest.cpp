@@ -10,7 +10,7 @@ InRandMatrixSz()
 {
    static std::random_device randDevice;
    static std::mt19937 generator(randDevice());
-   static std::uniform_int_distribution<size_t> distribution(50,50);
+   static std::uniform_int_distribution<size_t> distribution(100,500);
    return static_cast<size_t>(distribution(generator));
 }
 
@@ -84,7 +84,7 @@ Test__BitMatrixFuzzing()
 int32_t
 Test__BitMatrixEncodeFuzzing()
 {
-   size_t cycleCnt = 1000;
+   size_t cycleCnt = 100;
    BEGIN_TEST_JOB
 
    while(cycleCnt--)
@@ -92,7 +92,6 @@ Test__BitMatrixEncodeFuzzing()
       LayoutMatrix matrix(InRandMatrixSz(),InRandMatrixSz());
 
       matrix.Randm();
-      LayoutMatrix matr2 = LayoutMatrix::DecodeHash(LayoutMatrix::EncodeHash(matrix));
       TEST_ASSERT(static_cast<BitMatrix>(LayoutMatrix::DecodeHash(LayoutMatrix::EncodeHash(matrix))),static_cast<BitMatrix>(matrix), !=);
    }
 
