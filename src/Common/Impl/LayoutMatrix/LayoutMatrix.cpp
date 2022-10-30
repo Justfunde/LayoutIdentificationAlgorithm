@@ -297,6 +297,5 @@ LayoutMatrix::EncodeHash(
 	
 	resultStr.insert(0,MatrixEncodingParamters::strBegin);
 	resultStr += MatrixEncodingParamters::strEnd;
-	std::cout << resultStr;
 	return resultStr;
 }

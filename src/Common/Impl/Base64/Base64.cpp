@@ -3,7 +3,9 @@
 * @brief    Определение функций для работы с Base64
 */
 
+#include <algorithm>
 #include <stdexcept>
+
 
 #include "Include/Crc32.h"
 #include "Include/Base64.h"

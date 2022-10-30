@@ -10,6 +10,9 @@
 
 #include <unordered_map>
 #include <codecvt>
+#include <locale>
+#include <cstring>
+
 
 bool LayoutReader_MSK::IsMyFormat(const std::wstring& fName)
 {
@@ -23,7 +26,7 @@ bool LayoutReader_MSK::IsMyFormat(const std::wstring& fName)
         if (file_extention != L"msk")
             return false;
 
-    file.open(fName, std::ios::in);
+    file.open(std::string(fName.begin(),fName.end()), std::ios::in);
     std::string line;
 
     std::getline(file, line);
@@ -104,7 +107,7 @@ bool LayoutReader_MSK::Read(LayoutData* layout)
     if (!layout)
         return false;
 
-    file.open(fileName);
+    file.open(std::string(fileName.begin(),fileName.end()));
     if (!file.is_open())
         return false;
     p_data = layout;
@@ -183,7 +186,7 @@ inline bool LayoutReader_MSK::read_Rectangle_coords(const std::string& line, Coo
     char c_layer_name[4];
     int width = 0, height = 0;
 
-    if (!sscanf_s(line.c_str(), "REC(%d,%d,%d,%d,%s)", &left_bot.x, &left_bot.y, &width, &height, c_layer_name,4))
+    if (!sscanf(line.c_str(), "REC(%d,%d,%d,%d,%s)", &left_bot.x, &left_bot.y, &width, &height, c_layer_name))
     {
         return false;
     }

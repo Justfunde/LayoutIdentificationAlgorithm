@@ -1,6 +1,6 @@
 set(SOURCES_LIST LayoutReaderTest.cpp)
 
-set(LIBS_LIST MskReader LayoutReader)
+set(LIBS_LIST LayoutReader MskReader )
 
 add_unit_test(
    NAME Test__MskReader

@@ -1,6 +1,7 @@
 #ifndef __BYTE_HANDLER_H__
 #define __BYTE_HANDLER_H__
 #include <stdint.h>
+#include <cstddef>
 
 #define BIT(n) (1U << (n))
 #define BITS_IN_BYTE (8U)
