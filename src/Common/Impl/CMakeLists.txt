@@ -1,6 +1,5 @@
 add_subdirectory(Base64)
 add_subdirectory(BitMatrix)
-add_subdirectory(MskReader)
 add_subdirectory(LayoutMatrix)
 add_subdirectory(LayoutReader)
 add_subdirectory(Hash)

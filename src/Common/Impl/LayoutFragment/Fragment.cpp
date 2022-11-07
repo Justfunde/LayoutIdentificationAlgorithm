@@ -198,13 +198,13 @@ void Fragment::zondRectangle(Geometry* rect)
 {
 	const Coord& leftTop = rect->coords[0];
 	const Coord& rightBot = rect->coords[2];
-	printf("\ntype:rectangle\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", leftTop.x, leftTop.y, rightBot.x, rightBot.y);
+	//printf("\ntype:rectangle\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", leftTop.x, leftTop.y, rightBot.x, rightBot.y);
 	//Theoretical indicies
 	double i_rect_begin = static_cast<double> (boundIndicies.i_begin);
 	double i_rect_end = static_cast<double> (boundIndicies.i_end);
 	double j_rect_begin = static_cast<double> (boundIndicies.j_begin);
 	double j_rect_end = static_cast<double> (boundIndicies.j_end);
-	printf("Bound indicies:\nmin = [%d,%d]\tmax = [%d,%d]\n ",boundIndicies.i_begin, boundIndicies.j_begin, boundIndicies.i_end, boundIndicies.j_end);
+	//printf("Bound indicies:\nmin = [%d,%d]\tmax = [%d,%d]\n ",boundIndicies.i_begin, boundIndicies.j_begin, boundIndicies.i_end, boundIndicies.j_end);
 	//checking if Rectangle lies on the fragment
 
 	if (leftTop.x <= angleCoords.leftTop.x + dx / 2 - dx * eps && rightBot.x >= angleCoords.rightBot.x - dx / 2 + dx * eps)

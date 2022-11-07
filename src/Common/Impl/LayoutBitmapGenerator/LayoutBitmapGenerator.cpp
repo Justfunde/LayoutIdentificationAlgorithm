@@ -76,6 +76,7 @@ bool LayoutBitmapGenerator::process(size_t iSize, size_t jSize)
 	}
 	cout << endl << endl << endl << endl;
 	//bitmap.print();
+	return true;
 
 }
 
@@ -96,7 +97,7 @@ void LayoutBitmapGenerator::initFragmentsWorkspaces()
 		{
 			fragments[i][j].angleCoords.setAngleCoords(Coord(bitmapCoords.leftTop.x + j * dx, bitmapCoords.leftTop.y - i * dy), Coord(bitmapCoords.leftTop.x + (j + 1) * dx, bitmapCoords.leftTop.y - (i + 1) * dy));
 		
-			printf("[%d][%d]:\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", i, j, fragments[i][j].angleCoords.leftTop.x, fragments[i][j].angleCoords.leftTop.y, fragments[i][j].angleCoords.rightBot.x, fragments[i][j].angleCoords.rightBot.y);
+			//printf("[%d][%d]:\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", i, j, fragments[i][j].angleCoords.leftTop.x, fragments[i][j].angleCoords.leftTop.y, fragments[i][j].angleCoords.rightBot.x, fragments[i][j].angleCoords.rightBot.y);
 		}
 
 }
@@ -137,7 +138,7 @@ void LayoutBitmapGenerator::initFragmentsIndicies()
 		for (size_t j = 0; j < fragmentsSize; j++)
 		{
 			fragments[i][j].initIndicies(i * i_add, j * j_add, (i + 1) * i_add - 1, (j + 1) * j_add - 1);
-			printf("fragment[%d][%d]:\nmin = [%d,%d]\tmax = [%d,%d]\n ", i, j, fragments[i][j].boundIndicies.i_begin, fragments[i][j].boundIndicies.j_begin, fragments[i][j].boundIndicies.i_end, fragments[i][j].boundIndicies.j_end);
+			//printf("fragment[%d][%d]:\nmin = [%d,%d]\tmax = [%d,%d]\n ", i, j, fragments[i][j].boundIndicies.i_begin, fragments[i][j].boundIndicies.j_begin, fragments[i][j].boundIndicies.i_end, fragments[i][j].boundIndicies.j_end);
 		}
 
 }
@@ -163,7 +164,7 @@ void LayoutBitmapGenerator::push_Rectangle(Geometry* rect)
 
 	if (int32_t tmp = bitmapCoords.leftTop.y - rightBot.y; tmp > 0 && tmp < bitmapCoords.leftTop.y - bitmapCoords.rightBot.y)
 		i_end = tmp / dy;
-	printf("begin = [%d,%d]\t end = [%d,%d]\n", i_begin, j_begin, i_end, j_end);
+	//printf("begin = [%d,%d]\t end = [%d,%d]\n", i_begin, j_begin, i_end, j_end);
 	for (size_t i = i_begin; i <= i_end; i++)
 		for (size_t j = j_begin; j <= j_end; j++)
 			fragments[i][j].includedItems.push_back(rect);
@@ -202,6 +203,7 @@ inline bool LayoutBitmapGenerator::geometryWorkspaceIntersection(Geometry* item)
 	default:
 		return false;
 	}
+	return false;
 }
 
 void LayoutBitmapGenerator::cpyGeometries(std::vector <Geometry*>& dest, const std::vector<Geometry*>& source)

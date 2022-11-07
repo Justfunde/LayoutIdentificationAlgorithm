@@ -10,7 +10,7 @@ InRandMatrixSz()
 {
    static std::random_device randDevice;
    static std::mt19937 generator(randDevice());
-   static std::uniform_int_distribution<size_t> distribution(100,200);
+   static std::uniform_int_distribution<size_t> distribution(10,1000);
    return static_cast<size_t>(distribution(generator));
 }
 
