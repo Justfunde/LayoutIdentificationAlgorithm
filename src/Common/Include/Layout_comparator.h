@@ -1,45 +1,11 @@
 #pragma once
 #include "Include/LayoutData.hpp"
 #include "Include/LayoutMatrix.h"
+#include "Include/LayoutFragment.h"
 #include <stdio.h>
 
 constexpr double eps = 0.0000000000001;
 
-//TODO: convert structure to class
-struct Fragment
-{
-	
-	struct Indicies {
-		size_t i_begin = 0;
-		size_t i_end = 0;
-		size_t j_begin = 0;
-		size_t j_end = 0;
-	};
-	WorkspaceCoords				    angleCoords;
-	std::vector <Geometry*>		    includedItems;
-
-	Indicies                        boundIndicies;
-	LayoutMatrix*                   p_matrix;
-	double                          dx, dy;
-	
-public:
-	//TODO: delete another constructors and operators
-	//Fragment(LayoutMatrix& frag):p_matrix(frag) {}
-	Fragment() :p_matrix(nullptr), dx(0), dy(0) {}
-	~Fragment();
-
-	void fillMatrix();
-	void initIndicies(size_t i_begin, size_t i_end, size_t j_begin, size_t j_end);
-
-	// Zonding geometry elements
-	void zondRectangle(Geometry* rect);
-	
-
-	//Working with Geometry indicies
-	std::pair <int32_t, int32_t> norm_j_indicies(double begin, double end, double delta);
-	std::pair <int32_t, int32_t> norm_i_indicies(double begin, double end, double delta);
-	Indicies normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx);
-};
 
 
 class LayoutBitmapGenerator {

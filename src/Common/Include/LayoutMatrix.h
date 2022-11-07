@@ -12,6 +12,9 @@
 #include <cmath>
 
 
+class LayoutMatrix;
+using LayoutMatrixPtr = std::shared_ptr<LayoutMatrix>;
+
 struct WorkspaceCoords
 {
 	Coord leftTop, rightBot;
