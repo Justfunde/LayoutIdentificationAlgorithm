@@ -5,7 +5,7 @@
  * GDSII Binary - Dmitry A. Bulakh
  *                see LayoutReader_GDSIIBin.hpp
  * MSK          - Mikhail S. Kotlyarov  
- *                see LayoutReader_MSK.hpp
+ *                see MskReader.hpp
  */
 #pragma once
 

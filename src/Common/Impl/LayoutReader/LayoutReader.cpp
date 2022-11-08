@@ -1,6 +1,6 @@
 #include "Include/LayoutReader.hpp"
 
-#include "Include/LayoutReader_MSK.hpp"
+#include "Include/MskReader.hpp"
 
 LayoutReader::LayoutReader() : p_data(nullptr) {}
 
@@ -9,7 +9,7 @@ LayoutReader *GetReader(const std::wstring &fName) {
 
 
  
-  p_reader = new LayoutReader_MSK;
+  p_reader = new MskReader;
   if (p_reader->IsMyFormat(fName))
     return p_reader;
   delete p_reader;

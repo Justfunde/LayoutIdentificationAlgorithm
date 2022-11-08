@@ -1,8 +1,9 @@
 #include "Include/TestModule.h"
-#include "Include/LayoutReader_MSK.hpp"
+#include "Include/LayoutReader.hpp"
 
 #include <string>
-#include <array>
+#include <vector>
+#include <iostream>
 
 int32_t
 Test__MskReader()
@@ -12,9 +13,8 @@ Test__MskReader()
    constexpr uint32_t libraryCntEtalon = 1;
    constexpr uint32_t elementCntEtalon = 1;
    constexpr std::string_view elementNameEtalon = "carryCell";
-   constexpr uint32_t geometriesCntEtalon = 76;
-   constexpr uint32_t layerCntEtalon = 8;
-   constexpr std::array<int16_t, layerCntEtalon> etalonLayers =  { 1, 17, 16, 19, 13, 23, 27, 34  };
+   constexpr uint32_t geometriesCntEtalon = 75;
+   const std::vector<int16_t> etalonLayers =  { -5, 1, 17, 16, 19, 13, 23, -4, 27, 34 };
 
 
    constexpr std::string_view fileName = TEST_FILES_DIR "carryCell.MSK";
@@ -28,13 +28,17 @@ Test__MskReader()
 
    TEST_ASSERT(layout.libraries.size(),libraryCntEtalon,!=)
    TEST_ASSERT(layout.libraries[0]->elements.size(), elementCntEtalon, !=);
-   TEST_ASSERT(layout.libraries[0]->layers.size(), layerCntEtalon, !=)
+   for(auto it:layout.libraries[0]->layers)
+   {
+      std::cout << it.layer << std::endl;
+   }
+   TEST_ASSERT(layout.libraries[0]->layers.size(), etalonLayers.size(), !=)
 
    const Element* pElem = layout.libraries[0]->elements[0];
    TEST_ASSERT(pElem->name, elementNameEtalon, !=);
    TEST_ASSERT(pElem->geometries.size(), geometriesCntEtalon, !=)
 
-   for(size_t i = 0; i < layerCntEtalon; i++)
+   for(size_t i = 0; i < etalonLayers.size(); i++)
    {
       TEST_ASSERT(layout.libraries[0]->layers[i].layer, etalonLayers[i], !=);
    }
