@@ -251,7 +251,7 @@ GeometryConverter::PathToRectList(const Geometry* path)
 		else if (pPath->coords.size() - 2 == i  ) { pos = PathElemPos::end; }
 		else { pos = PathElemPos::mid; }
 
-        auto tempBox = std::make_shared<Rectangle>(new Rectangle);
+        auto tempBox = std::shared_ptr<Rectangle>(new Rectangle);
 		tempBox->coords.resize(coordCount);
 
 		auto angleCoords = InGetRectAngles(path->coords[i], path->coords[i + 1], halfWidth, pos);//lefttop and rightBot
@@ -282,7 +282,7 @@ GeometryConverter::SplitSref(
 		{
 		case GeometryType::polygon:
 		{
-			auto tempPoly = std::make_shared<Polygon>( new Polygon);
+			auto tempPoly = std::shared_ptr<Polygon>( new Polygon);
 			*tempPoly = *static_cast<const Polygon*>(it);
 			InAddCoordValue(tempPoly, Min);
 
@@ -303,7 +303,7 @@ GeometryConverter::SplitSref(
 	
 		case GeometryType::rectangle:
 		{
-			auto tempRect = std::make_shared<Rectangle>( new Rectangle);
+			auto tempRect = std::shared_ptr<Rectangle>( new Rectangle);
 			*tempRect = *static_cast<const Rectangle*>(it);
 			InAddCoordValue(tempRect, Min);
 
