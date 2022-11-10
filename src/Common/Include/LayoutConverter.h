@@ -13,7 +13,7 @@ using GeometryList = std::list<std::shared_ptr<Geometry>>;
 namespace GeometryConverter
 {
     GeometryList
-    PathToRect(const Geometry* Path);
+    PathToRectList(const Geometry* Path);
 
     GeometryList
     SplitSref(

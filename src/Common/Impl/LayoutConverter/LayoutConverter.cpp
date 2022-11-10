@@ -1,11 +1,6 @@
 #include "Include/LayoutConverter.h"
 
-static
-GeometryType
-GetType(const Geometry* Obj)
-{
-    return (nullptr == Obj) ? GeometryType::undefined : Obj->type;
-}
+using LineCoordinated = std::pair<Coord, Coord>;
 
 enum class LineOrientation {
 	undefined = 0,
@@ -13,87 +8,168 @@ enum class LineOrientation {
 	vertical
 };
 
+
 enum class PathElemPos
 {
-	undefuned = 0,
+	undefined = 0,
 	begin,
 	mid,
 	end
 };
 
-LineOrientation getOrientation(const Coord& first, const Coord& second)
+static
+int32_t
+calcDelta(
+   int32_t first,
+   int32_t second)
 {
-	if (first.x == second.x && first.y == second.y)
-		return LineOrientation::undefined;
-	if (first.x == second.x)
-		return LineOrientation::vertical;
-	else return LineOrientation::horizontal;
+   return second - first;
 }
 
+
+static
 void 
-addCoordValue(std::shared_ptr<Geometry> geom, const Coord& value)
+InFillBox(
+   GeometryPtr Box2Fill,
+   const Coord& LeftBot,
+   const Coord& RightTop,
+   int16_t LayerNum)
 {
-	for (size_t i = 0; i < geom->coords.size(); i++)
+    Coord currCoord;
+    int32_t dx = calcDelta(LeftBot.x, RightTop.x);
+    int32_t dy = calcDelta(LeftBot.y, RightTop.y);
+
+    //Left top
+    currCoord.x = RightTop.x - dx;
+    currCoord.y = RightTop.y;
+    Box2Fill->coords.push_back(currCoord);
+    
+    //Right top
+    Box2Fill->coords.push_back(RightTop);
+
+    //Right bot
+    currCoord.x = RightTop.x;
+    currCoord.y = RightTop.y - dy;
+    Box2Fill->coords.push_back(currCoord);
+
+    //Left bot
+    currCoord.x = RightTop.x - dx;
+    currCoord.y = RightTop.y - dy;
+    Box2Fill->coords.push_back(currCoord);
+
+    //Left top
+    currCoord.x = RightTop.x - dx;
+    currCoord.y = RightTop.y;
+    Box2Fill->coords.push_back(currCoord);
+
+    Box2Fill->layer = LayerNum;
+
+    Box2Fill->min = Box2Fill->max = Box2Fill->coords[0];
+    for (size_t i = 1; i < Box2Fill->coords.size(); ++i) {
+      if (Box2Fill->min.x > Box2Fill->coords[i].x)
+        Box2Fill->min.x = Box2Fill->coords[i].x;
+      if (Box2Fill->min.y > Box2Fill->coords[i].y)
+        Box2Fill->min.y = Box2Fill->coords[i].y;
+      if (Box2Fill->max.x < Box2Fill->coords[i].x)
+        Box2Fill->max.x = Box2Fill->coords[i].x;
+      if (Box2Fill->max.y < Box2Fill->coords[i].y)
+        Box2Fill->max.y = Box2Fill->coords[i].y;
+    }
+}
+
+
+static
+GeometryType
+InGetType(const Geometry* Obj)
+{
+    return (nullptr == Obj) ? GeometryType::undefined : Obj->type;
+}
+
+LineOrientation
+InGetOrientation(
+    const LineCoordinated& LineCoord)
+{
+	if (LineCoord.first.x == LineCoord.second.x && LineCoord.first.y == LineCoord.second.y) { return LineOrientation::undefined; }
+	if (LineCoord.first.x == LineCoord.second.x) { return LineOrientation::vertical; }
+	return LineOrientation::horizontal;
+}
+
+
+void 
+InAddCoordValue(
+    GeometryPtr pGeometry,
+    const Coord& AdditValue)
+{
+    pGeometry->min.x += AdditValue.x;
+    pGeometry->min.y += AdditValue.y;
+    pGeometry->max.x += AdditValue.x;
+    pGeometry->max.y += AdditValue.y;
+	for (auto& it : pGeometry->coords)
 	{
-		geom->coords[i].x += value.x;
-		geom->coords[i].y += value.y;
+		it.x += AdditValue.x;
+		it.y += AdditValue.y;
 	}
 }
 
-std::pair<Coord, Coord> 
-getRectAngles(const Coord& first, const Coord& second, const int32_t addWidth, PathElemPos& pos)
+
+std::pair<Coord, Coord>
+InGetRectAngles(
+    const Coord& BeginLine,
+    const Coord& EndLine,
+    int32_t HalfWidth,
+    PathElemPos Pos)
 {
-	if (pos == PathElemPos::undefuned)
+	if (Pos == PathElemPos::undefined)
 		return std::make_pair(Coord(), Coord());
 	Coord leftTop;
 	Coord rightBot;
 
-	switch (getOrientation(first, second))
+	switch (InGetOrientation({BeginLine, EndLine}))
 	{
 	case LineOrientation::horizontal:
 	{
-		const int32_t& y = first.y;
-		switch (pos)
+		const int32_t y = BeginLine.y;
+		switch (Pos)
 		{
 		case PathElemPos::begin:
 		{
-			if (second.x > first.x)
+			if (EndLine.x > BeginLine.x)
 			{
-				leftTop = { first.x,y + addWidth };
-				rightBot = { second.x + addWidth,y - addWidth };
+				leftTop = { BeginLine.x,y + HalfWidth };
+				rightBot = { EndLine.x + HalfWidth,y - HalfWidth };
 			}
 			else
 			{
-				rightBot = { first.x,y - addWidth };
-				leftTop = { second.x - addWidth,y + addWidth };
+				rightBot = { BeginLine.x,y - HalfWidth };
+				leftTop = { EndLine.x - HalfWidth,y + HalfWidth };
 			}
 			break;
 		}
 		case PathElemPos::mid:
 		{
-			if (second.x > first.x)
+			if (EndLine.x > BeginLine.x)
 			{
-				leftTop = { first.x - addWidth,y + addWidth };
-				rightBot = { second.x + addWidth,y - addWidth };
+				leftTop = { BeginLine.x - HalfWidth,y + HalfWidth };
+				rightBot = { EndLine.x + HalfWidth,y - HalfWidth };
 			}
 			else
 			{
-				rightBot = { first.x + addWidth,y - addWidth };
-				leftTop = { second.x - addWidth,y + addWidth };
+				rightBot = { BeginLine.x + HalfWidth,y - HalfWidth };
+				leftTop = { EndLine.x - HalfWidth,y + HalfWidth };
 			}
 			break;
 		}
 		case PathElemPos::end:
 		{
-			if (second.x > first.x)
+			if (EndLine.x > BeginLine.x)
 			{
-				leftTop = { first.x - addWidth,y + addWidth };
-				rightBot = { second.x,y - addWidth };
+				leftTop = { BeginLine.x - HalfWidth,y + HalfWidth };
+				rightBot = { EndLine.x,y - HalfWidth };
 			}
 			else
 			{
-				rightBot = { first.x + addWidth,y - addWidth };
-				leftTop = { second.x,y + addWidth };
+				rightBot = { BeginLine.x + HalfWidth,y - HalfWidth };
+				leftTop = { EndLine.x,y + HalfWidth };
 			}
 			break;
 		}
@@ -103,48 +179,48 @@ getRectAngles(const Coord& first, const Coord& second, const int32_t addWidth, P
 
 	case LineOrientation::vertical:
 	{
-		const int32_t& x = first.x;
-		switch (pos)
+		const int32_t x = BeginLine.x;
+		switch (Pos)
 		{
 		case PathElemPos::begin:
 		{
-			if (first.y > second.y)
+			if (BeginLine.y > EndLine.y)
 			{
-				leftTop = { x - addWidth,first.y };
-				rightBot = { x + addWidth,second.y - addWidth };
+				leftTop = { x - HalfWidth,BeginLine.y };
+				rightBot = { x + HalfWidth,EndLine.y - HalfWidth };
 			}
 			else
 			{
-				rightBot = { x + addWidth,first.y };
-				leftTop = { x - addWidth,second.y + addWidth };
+				rightBot = { x + HalfWidth,BeginLine.y };
+				leftTop = { x - HalfWidth,EndLine.y + HalfWidth };
 			}
 			break;
 		}
 		case PathElemPos::mid:
 		{
-			if (first.y > second.y)
+			if (BeginLine.y > EndLine.y)
 			{
-				leftTop = { x - addWidth,first.y + addWidth };
-				rightBot = { x + addWidth,second.y - addWidth };
+				leftTop = { x - HalfWidth,BeginLine.y + HalfWidth };
+				rightBot = { x + HalfWidth,EndLine.y - HalfWidth };
 			}
 			else
 			{
-				rightBot = { x + addWidth,first.y - addWidth };
-				leftTop = { x - addWidth,second.y + addWidth };
+				rightBot = { x + HalfWidth,BeginLine.y - HalfWidth };
+				leftTop = { x - HalfWidth,EndLine.y + HalfWidth };
 			}
 			break;
 		}
 		case PathElemPos::end:
 		{
-			if (first.y > second.y)
+			if (BeginLine.y > EndLine.y)
 			{
-				leftTop = { x - addWidth,first.y + addWidth };
-				rightBot = { x + addWidth,second.y };
+				leftTop = { x - HalfWidth,BeginLine.y + HalfWidth };
+				rightBot = { x + HalfWidth,EndLine.y };
 			}
 			else
 			{
-				rightBot = { x + addWidth, first.y - addWidth };
-				leftTop = { x - addWidth,second.y };
+				rightBot = { x + HalfWidth, BeginLine.y - HalfWidth };
+				leftTop = { x - HalfWidth,EndLine.y };
 			}
 			break;
 		}
@@ -158,38 +234,34 @@ getRectAngles(const Coord& first, const Coord& second, const int32_t addWidth, P
 
 
 GeometryList
-GeometryConverter::PathToRect(const Geometry* path)
+GeometryConverter::PathToRectList(const Geometry* path)
 {
     GeometryList boxes;
-    if(GeometryType::path !=  GetType(path)) { return boxes;}
+    if(GeometryType::path !=  InGetType(path)) { return boxes;}
 
     const Path* pPath = static_cast<const Path*>(path);
-
     constexpr size_t coordCount = 5;
+	const int32_t halfWidth = pPath->width / 2;
 
-	const int32_t addWidth = pPath->width / 2;
-
-	PathElemPos pos = PathElemPos::undefuned;
+	PathElemPos pos = PathElemPos::undefined;
 	for (size_t i = 0; i < pPath->coords.size() - 1; i++)
 	{
-		if (i == 0)
-			pos = PathElemPos::begin;
-		else if (i == pPath->coords.size() - 2)
-			pos = PathElemPos::end;
-		else pos = PathElemPos::mid;
 
-		auto tempBox = std::make_shared<Rectangle>();
-		tempBox->type = GeometryType::rectangle;
+		if (0 == i) { pos = PathElemPos::begin; }
+		else if (pPath->coords.size() - 2 == i  ) { pos = PathElemPos::end; }
+		else { pos = PathElemPos::mid; }
+
+        auto tempBox = std::make_shared<Rectangle>(new Rectangle);
 		tempBox->coords.resize(coordCount);
 
+		auto angleCoords = InGetRectAngles(path->coords[i], path->coords[i + 1], halfWidth, pos);//lefttop and rightBot
 
-		auto angleCoords = getRectAngles(path->coords[i], path->coords[i + 1], addWidth,pos);//lefttop and rightBot
-		
-		boxes.push_back(std::move(tempBox));
+        InFillBox(tempBox, { angleCoords.first.x, angleCoords.second.y}, { angleCoords.second.x, angleCoords.first.y}, pPath->layer);
+		boxes.push_back(tempBox);
 	}
-			
 	return boxes;
 }
+
 
 GeometryList
 GeometryConverter::SplitSref(
@@ -202,48 +274,47 @@ GeometryConverter::SplitSref(
 
     const Reference* reference = static_cast<const Reference*>(Sref);
 
-	Min = { Min.x+ reference->pElement->min.x, Min.y+ reference->pElement->min.y } ;
+	Min = { Min.x + reference->pElement->min.x, Min.y + reference->pElement->min.y } ;
 
-	for (size_t i = 0; i < reference->pElement->geometries.size(); i++)
+	for ( const Geometry* it : reference->pElement->geometries)
 	{
-		switch (reference->pElement->geometries[i]->type)
+		switch (InGetType(it))
 		{
 		case GeometryType::polygon:
 		{
-			auto tempPoly = std::make_shared<Polygon>();
-			*tempPoly = *static_cast<Polygon*>(reference->pElement->geometries[i]);
-			addCoordValue(std::static_pointer_cast<Geometry>(tempPoly), Min);
+			auto tempPoly = std::make_shared<Polygon>( new Polygon);
+			*tempPoly = *static_cast<const Polygon*>(it);
+			InAddCoordValue(tempPoly, Min);
+
 			refArr.push_back(tempPoly);
 			break;
 		}
+
 		case GeometryType::path:
 		{
-			std::list <std::shared_ptr<Geometry>> tempPathArr = PathToRect(static_cast<Path*>(reference->pElement->geometries[i]));
-			for (auto it = tempPathArr.begin(); it != tempPathArr.end(); it++)
+			GeometryList tempPathArr = PathToRectList(it);
+			for (GeometryPtr  pathPtr : tempPathArr)
 			{
-				auto tempRect = std::make_shared<Rectangle>();
-				*tempRect = *static_cast<Rectangle*>(reference->pElement->geometries[i]);
-				addCoordValue(std::static_pointer_cast<Geometry>(tempRect), Min);
-				refArr.push_back(tempRect);
+				InAddCoordValue(pathPtr, Min);
+				refArr.push_back(pathPtr);
 			}
-
 			break;
 		}
 	
 		case GeometryType::rectangle:
 		{
-			auto tempRect = std::make_shared<Rectangle>();
-			*tempRect = *static_cast<Rectangle*>(reference->pElement->geometries[i]);
-			addCoordValue(std::static_pointer_cast<Geometry>(tempRect), Min);
-			refArr.push_back(tempRect);
+			auto tempRect = std::make_shared<Rectangle>( new Rectangle);
+			*tempRect = *static_cast<const Rectangle*>(it);
+			InAddCoordValue(tempRect, Min);
 
+			refArr.push_back(tempRect);
 			break;
 		}
+
 		case GeometryType::reference:
 		{
-			auto tempRefArr = SplitSref(static_cast<Reference*>(reference->pElement->geometries[i]),Min);
-			for (auto it = tempRefArr.begin(); it != tempRefArr.end(); it++)
-				refArr.push_back(*it);
+			auto tempRefArr = SplitSref(it, Min);
+			for (GeometryPtr RefIter :  tempRefArr) { refArr.push_back(RefIter); }
 			break;
 		}
 		default:break;
