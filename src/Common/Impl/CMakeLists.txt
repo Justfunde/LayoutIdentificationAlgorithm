@@ -1,6 +1,7 @@
 add_subdirectory(Base64)
 add_subdirectory(BitMatrix)
 add_subdirectory(LayoutMatrix)
+add_subdirectory(LayoutConverter)
 add_subdirectory(LayoutReader)
 add_subdirectory(Hash)
 add_subdirectory(RunLengthEncoding)
