@@ -13,6 +13,7 @@
 #include <limits>
 #include <exception>
 #include <cstring>
+#include <regex>
 
 static std::unordered_map <std::string, int16_t> g_layerMap =
 {
@@ -42,12 +43,8 @@ MskReader::IsMyFormat(
    bool retVal = true;
    do 
    {
-      size_t commaPos = Fname.find_last_of(L".");
-      if (commaPos == std::string::npos) { retVal = false; break; }
-
-      const std::wstring fileExt = Fname.substr(commaPos + 1, Fname.length() - commaPos);
-
-      if (fileExt != L"MSK" && fileExt != L"msk") { retVal = false; break; }
+      std::regex fileNameRegex("\\w+\\.msk$",std::regex_constants::icase);
+      if(!std::regex_search(std::string(Fname.begin(), Fname.end()),fileNameRegex)) { return false;}
 
       file.open(std::string(Fname.begin(),Fname.end()), std::ios::in);
       if (!file) { retVal = false; break; }

@@ -43,8 +43,6 @@ public:
 	void Hash2Matrix(const std::string &Hash);
 
 
-
-
 	//Hash based methods
 	void setHash(const std::string& hash);
 	BitMatrix decodeHash();

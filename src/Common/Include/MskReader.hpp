@@ -38,6 +38,7 @@ private:
 
 	int16_t         ConvertMskLayerNum(const std::string& layer_name);
 	std::vector<Layer>::iterator FindByLayerNum(std::vector <Layer>& all_layers, int16_t layer_num);
+	inline std::string GetFname(std::wstring Path);
 
 	inline int32_t  calcDelta(int32_t first, int32_t second);
 };
