@@ -15,6 +15,95 @@ calcDelta(
 	return fabs(N2 - N1) / PartCnt;
 }
 
+Indicies Indicies::normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx, const Indicies& boundIndicies)
+{
+	//checking possible situations
+	constexpr double mid = 0.5;
+	const double iError = eps * dy;
+	const double jError = eps * dx;
+	Indicies normalIndicies;
+
+
+	//calculating i part
+	if (static_cast<int32_t>(iEnd) - static_cast<int32_t>(iBegin) == 0)
+	{
+
+		const double iBeginMantissa = iBegin - trunc(iBegin);
+		const double iEndMantissa = iEnd - trunc(iEnd);
+		if ((iBeginMantissa >= mid - iError && iBeginMantissa <= mid + iError) || (iEndMantissa >= mid - iError && iEndMantissa <= mid + iError) ||
+			(iBeginMantissa <= mid + iError && iEndMantissa >= mid - iError))
+		{
+			normalIndicies.iBegin = static_cast<size_t>(iBegin);
+			normalIndicies.iEnd = static_cast<size_t>(iBegin);
+		}
+		else {
+			normalIndicies.iBegin = 1;
+			normalIndicies.iEnd = 0;
+		}
+
+	}
+	else {
+		if (iBegin <= boundIndicies.iBegin)
+			normalIndicies.iBegin = boundIndicies.iBegin;
+		else {
+			const double iBeginMantissa = iBegin - trunc(iBegin);
+			if (mid + iError >= iBeginMantissa)
+				normalIndicies.iBegin = static_cast<size_t>(iBegin);
+			else normalIndicies.iBegin = static_cast<size_t>(iBegin) + 1;
+		}
+		if (iEnd >= boundIndicies.iEnd)
+			normalIndicies.iEnd = boundIndicies.iEnd;
+		else
+		{
+			const double iEndMantissa = iEnd - trunc(iEnd);
+			if (mid - iError <= iEndMantissa)
+				normalIndicies.iEnd = static_cast<size_t>(round(iEnd));
+			else normalIndicies.iEnd = static_cast<size_t>(iEnd) - 1;
+		}
+	}
+
+	//calculating j part
+
+	if (static_cast<int32_t>(jEnd) - static_cast<int32_t>(jBegin) == 0)
+	{
+
+		const double jBeginMantissa = jBegin - trunc(jBegin);
+		const double jEndMantissa = jEnd - trunc(jEnd);
+		if ((jBeginMantissa >= mid - jError && jBeginMantissa <= mid + jError) || (jEndMantissa >= mid - jError && jEndMantissa <= mid + jError) ||
+			(jBeginMantissa <= mid + jError && jEndMantissa >= mid - jError))
+		{
+			normalIndicies.jBegin = static_cast<size_t>(jBegin);
+			normalIndicies.jEnd = static_cast<size_t>(jBegin);
+		}
+		else {
+			normalIndicies.jBegin = 1;
+			normalIndicies.jEnd = 0;
+		}
+
+	}
+	else {
+		if (jBegin <= boundIndicies.jBegin)
+			normalIndicies.jBegin = boundIndicies.jBegin;
+		else {
+			const double jBeginMantissa = jBegin - trunc(jBegin);
+			if (mid + jError >= jBeginMantissa)
+				normalIndicies.jBegin = static_cast<size_t>(jBegin);
+			else normalIndicies.jBegin = static_cast<size_t>(jBegin) + 1;
+		}
+		if (jEnd >= boundIndicies.jEnd)
+			normalIndicies.jEnd = boundIndicies.jEnd;
+		else
+		{
+			const double jEndMantissa = jEnd - trunc(jEnd);
+			if (mid - jError <= jEndMantissa)
+				normalIndicies.jEnd = static_cast<size_t>(round(jEnd));
+			else normalIndicies.jEnd = static_cast<size_t>(jEnd) - 1;
+		}
+	}
+
+	return normalIndicies;
+}
+
 
 void
 Fragment::SetMatrix(

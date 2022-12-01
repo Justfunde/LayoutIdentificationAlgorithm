@@ -185,12 +185,11 @@ LayoutMatrix::DecodeSz(
 void 
 LayoutMatrix::DecodeEncodings(
 	char EncodedEncodings,
-	bool &Rle,
-	bool &Base64)
+	bool& Rle,
+	bool& Base64)
 {
-	Rle = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings),MatrixEncodingParamters::rleBitPos);
-	Base64 = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings),MatrixEncodingParamters::rleBitPos);
-
+	Rle = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings), MatrixEncodingParamters::rleBitPos);
+	Base64 = ByteHandler::GetBit(static_cast<uint8_t>(EncodedEncodings), MatrixEncodingParamters::rleBitPos);
 }
 
 LayoutMatrix

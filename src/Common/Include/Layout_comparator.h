@@ -17,16 +17,16 @@ private:
 	std::vector<int16_t>    layers;
 
 	//Calculating inside generator
-	LayoutMatrix            bitmap;
-	Fragment**				fragments;
-	size_t	    			fragmentsSize;
-	double  				dx,dy;
-	bool                    isCorrect;
+	LayoutMatrixPtr           bitmap;
+	Fragment**				  fragments;
+	size_t	    			  fragmentsSize;
+	//LayoutGeometries        geometries;
+	double  				  dx,dy;
+	bool                      isCorrect;
 
 	
 public:
-	//TODO:Do another constuctors and overloaded operators
-	LayoutBitmapGenerator() :data(nullptr), fragments(nullptr), fragmentsSize(2), dx(0), dy(0), isCorrect(false) {}
+	LayoutBitmapGenerator() : data(nullptr), fragments(nullptr), fragmentsSize(2), dx(0), dy(0), isCorrect(false) {}
 	~LayoutBitmapGenerator();
 	
 	bool init(LayoutData* data,const Coord& leftTop, const Coord& rightBot, const std::vector <int16_t>& layers);
@@ -34,28 +34,33 @@ public:
 	LayoutMatrix getMatrix() const;
 
 private:
-	
-	
+	void firstMatrixInit();
 
-	//Fragment init
+	//Zonding
+	void zondRectangle(Rectangle* rect);
+	
+	//Fragment initialization
 	void initFragmentsWorkspaces();
-	void initFragmentsGeometries();
+	void distributeGeometries();
 	void initFragmentsIndicies();
 
 	//Init vector of elements inside workspace
-	std::vector<Geometry*> getLayerItems();
-	void cpyGeometries(std::vector <Geometry*>& dest, const std::vector<Geometry*>& source);
-	inline bool geometryWorkspaceIntersection(Geometry* item);
+	void getLayerItems();
+
+	void processGeometries (const std::vector<Geometry*>& source);
+	inline bool GeometryWorkspaceIntersection(Geometry* item);
 
 	//Pushing items into fragments
-	void push_Rectangle(Geometry* rect);
-	
+	bool pushRectangle(std::list<Geometry*>::const_iterator rect);
+	bool pushRectangle(std::list<std::shared_ptr<Geometry>>::const_iterator rect);
+	//bool push
 
 	//utility methods
 	void allocFragments();
 	void reset();
-
+	friend class Layout_comparator;
 };
+
 
 inline double calcDelta(const int32_t n1, const int32_t n2, const uint32_t split_count);
 

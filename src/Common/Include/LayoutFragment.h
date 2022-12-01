@@ -5,18 +5,19 @@
 
 
 //constexpr double eps = 0.0000000000001;
-
-
-class Fragment
-{
-    private:
-
 	struct Indicies {
 		size_t iBegin = 0;
 		size_t iEnd   = 0;
 		size_t jBegin = 0;
 		size_t jEnd   = 0;
+		static Indicies normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx, const Indicies& boundIndicies);
 	};
+
+class Fragment
+{
+    private:
+
+
 
 	WorkspaceCoords				    angleCoords;
     Indicies                        boundIndicies;

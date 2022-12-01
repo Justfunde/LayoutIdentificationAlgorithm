@@ -25,6 +25,7 @@ public:
 	bool isInWorkspace(int32_t x, int32_t y);
 };
 
+
 class LayoutMatrix:public BitMatrix
 {
 public:
