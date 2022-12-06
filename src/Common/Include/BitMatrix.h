@@ -43,7 +43,7 @@ public:
 	void             Ones();
 	void             Zeros();
 	void             Randm();
-	void             resize(size_t RowCnt, size_t ColCnt);
+	void             Resize(size_t RowCnt, size_t ColCnt);
 	void             Print() const noexcept;
 	double           OneRatio() const noexcept;
 	double           zeroRatio() const noexcept;

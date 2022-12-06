@@ -1,84 +1,76 @@
-#pragma warning(disable:6273)
-#include "Include/Layout_comparator.h"
+#include "Include/LayoutBitmapGenerator.h"
+#include "Include/LayoutConverter.h"
+
+LayoutBitmapGenerator::LayoutBitmapGenerator() 
+: data(nullptr)
+, fragments(nullptr)
+, fragmentsSz(2)
+, dx(0)
+, dy(0)
+, isCorrect(false) 
+{
+	allocFragments();
+}
 
 
 //Public methods
 
-bool LayoutBitmapGenerator::init(LayoutData* data, const Coord& min, const Coord& max, const std::vector <int16_t>& layers)
+bool
+LayoutBitmapGenerator::Init(
+	LayoutData* data,
+	const Coord& min,
+	const Coord& max,
+	const std::vector <int16_t>& layers)
 {
-	using namespace std;
-	//wcout << "\nInitialization BitmapGenerator with " << data->fileName << endl;
 	reset();
-
 	const Coord leftTop  = { min.x, max.y };
 	const Coord rightBot = { max.x, min.y };
+
 	//Correct parameters checking
-	if (!data || layers.empty() || fragmentsSize == 0)
-		return false;
-	if (!bitmapCoords.setAngleCoords(leftTop, rightBot))
-		return false;
+	if (!data || layers.empty() || 0 == fragmentsSz) { return false; }
 
-
-	//printf("min = (%d,%d)\nmax = (%d,%d)\n", min.x, min.y, max.x, max.y);
+	if (!bitmapCoords.setAngleCoords(leftTop, rightBot)) { return false; }
+		
 	this->data = data;
 	this->layers = layers;
-
-
-	//cout << "Layers:\n";
-	for (size_t i = 0; i < layers.size(); i++)
-	{
-	//	cout << layers[i] << " ";
-	}
-	allocFragments();
 	isCorrect = true;
-	//cout << "\nInit result:" << isCorrect << endl;
+
 	return isCorrect;
 }
 
 
-inline
-double
-calcDelta(
-	int32_t N1,
-	int32_t N2,
-	uint32_t PartCnt)
+bool
+LayoutBitmapGenerator::Process(
+	size_t iSize,
+	size_t jSize)
 {
-	return fabs(N2 - N1) / PartCnt;
-}
+	if (!isCorrect) { return false; }
+		
+	if (0 != iSize % fragmentsSz  || 0 != jSize % fragmentsSz) { return false; }
+		
+	bitmap->Resize(iSize, jSize);
 
-bool LayoutBitmapGenerator::process(size_t iSize, size_t jSize)
-{
-	using namespace std;
-	//wcout << "\n\n\n\nProcessing\t" << data->fileName << endl;
-	if (!isCorrect)
-		return false;
-	if (iSize % fragmentsSize != 0 || jSize % fragmentsSize != 0)
-		return false;
-
-
-	bitmap->resize(iSize, jSize);
-
-	//cout << "Bitmap size:(" << bitmap.get_i_size() << " " << bitmap.get_j_size() << ")" << endl;
-	for (size_t i = 0; i < fragmentsSize; i++)
-		for (size_t j = 0; j < fragmentsSize; j++)
+	for (size_t i = 0; i < fragmentsSz; i++)
+	{
+		for (size_t j = 0; j < fragmentsSz; j++)
+		{
 			fragments[i][j].SetMatrix(bitmap);
+		}
+	}
+	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x, fragmentsSz);
+	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, fragmentsSz);
 
-	dx = calcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x, fragmentsSize);
-	dy = calcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, fragmentsSize);
-
-	//cout << "Fragments Information:\ndx = " << dx << "\ndy = " << dy << endl;
-
-	getLayerItems();
-	initFragmentsWorkspaces();
-	distributeGeometries();
+	InitGeometryItems();
+	InitFragmentsWorkspaces();
+	DistributeGeometries();
 	initFragmentsIndicies();
 	firstMatrixInit();
 
 	//bitmap.print();
 	//cout << "\n\n\nFilling matrix:\n";
-	for (size_t i = 0; i < fragmentsSize; i++)
+	for (size_t i = 0; i < fragmentsSz; i++)
 	{
-		for (size_t j = 0; j < fragmentsSize; j++)
+		for (size_t j = 0; j < fragmentsSz; j++)
 		{
 			//cout << "\nFragment[" << i << "][" << j << "]\n";
 			fragments[i][j].ProcessMatrix();
@@ -89,18 +81,34 @@ bool LayoutBitmapGenerator::process(size_t iSize, size_t jSize)
 	return true;	
 }
 
+
+inline
+double
+СalcDelta(
+	int32_t N1,
+	int32_t N2,
+	uint32_t PartCnt)
+{
+	return fabs(N2 - N1) / PartCnt;
+}
+
+
+
+
+
 LayoutMatrix LayoutBitmapGenerator::getMatrix() const
 {
 	//return bitmap->GetMatrix();
 	return LayoutMatrix();
 }
 
+
 //First matrix initialization
 
 void LayoutBitmapGenerator::firstMatrixInit()
 {
-	dx = calcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetIsize());
-	dy = calcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetJsize());
+	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetIsize());
+	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetJsize());
 	/*for (auto it = geometries.dataGeometries.begin(); it != geometries.dataGeometries.end(); it++)
 	{
 		switch ((*it)->type)
@@ -120,12 +128,12 @@ void LayoutBitmapGenerator::firstMatrixInit()
 
 //Fragment initialization
 
-void LayoutBitmapGenerator::initFragmentsWorkspaces()
+void LayoutBitmapGenerator::InitFragmentsWorkspaces()
 {
 	//std::cout << "\n\n\nFragments angle coordinates : \n";
 
-	for (size_t i = 0; i < fragmentsSize; i++)
-		for (size_t j = 0; j < fragmentsSize; j++)
+	for (size_t i = 0; i < fragmentsSz; i++)
+		for (size_t j = 0; j < fragmentsSz; j++)
 		{
 			//fragments[i][j].SetWorkspaceCoords(Coord(bitmapCoords.leftTop.x + j * dx, bitmapCoords.leftTop.y - i * dy), Coord(bitmapCoords.leftTop.x + (j + 1) * dx, bitmapCoords.leftTop.y - (i + 1) * dy));
 			//fragments[i][j].p_bitmapCoords = &bitmapCoords;
@@ -134,13 +142,14 @@ void LayoutBitmapGenerator::initFragmentsWorkspaces()
 
 }
 
-void LayoutBitmapGenerator::distributeGeometries()
+void LayoutBitmapGenerator::DistributeGeometries()
 {
+	/*
 	//std::cout << "\n\n\nFragments geometries:\n";
 	//std::cout << "\nPushing items into fragments\n";
 	size_t i = 0;
 	//std::cout << "Processing data(preloaded) geometries\n";
-	/*(for (auto preloaded = geometries.dataGeometries.begin(); preloaded != geometries.dataGeometries.end(); preloaded++,i++)
+	for (auto preloaded = geometries.dataGeometries.begin(); preloaded != geometries.dataGeometries.end(); preloaded++,i++)
 	{
 		//std::cout << "\nGeometry[" << i << "]:\n";
 		if ((*preloaded)->type == GeometryType::rectangle)
@@ -154,17 +163,18 @@ void LayoutBitmapGenerator::distributeGeometries()
 		//std::cout << "\nGeometry[" << i << "]:\n";
 		if (pushRectangle(selfGen))
 			selfGen = geometries.deletesSelfGenGeometry(selfGen);
-	}*/
+	}
+	*/
 }
 
 void LayoutBitmapGenerator::initFragmentsIndicies()
 {
 	//std::cout << "\nInit fragment indicies\n";
-	const size_t i_add = bitmap->GetIsize() / fragmentsSize;
-	const size_t j_add = bitmap->GetJsize() / fragmentsSize;
+	const size_t i_add = bitmap->GetIsize() / fragmentsSz;
+	const size_t j_add = bitmap->GetJsize() / fragmentsSz;
 	//std::cout << "i_add = " << i_add << "\nj_add = " << j_add << std::endl;
-	for (size_t i = 0; i < fragmentsSize; i++)
-		for (size_t j = 0; j < fragmentsSize; j++)
+	for (size_t i = 0; i < fragmentsSz; i++)
+		for (size_t j = 0; j < fragmentsSz; j++)
 		{
 			fragments[i][j].SetIndicies(i * i_add, j * j_add, (i + 1) * i_add - 1, (j + 1) * j_add - 1);
 			//printf("fragment[%d][%d]:\nmin = [%d,%d]\tmax = [%d,%d]\n ", i, j, fragments[i][j].boundIndicies.iBegin, fragments[i][j].boundIndicies.jBegin, fragments[i][j].boundIndicies.iEnd, fragments[i][j].boundIndicies.jEnd);
@@ -179,7 +189,7 @@ bool LayoutBitmapGenerator::pushRectangle(std::list<Geometry*>::const_iterator r
 	const Coord& leftTop = (*rect)->coords[0];
 	const Coord& rightBot = (*rect)->coords[2];
 	//printf("type:rectangle\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", leftTop.x, leftTop.y, rightBot.x, rightBot.y);
-	size_t i_begin(0), i_end(fragmentsSize - 1), j_begin(0), j_end(fragmentsSize - 1);
+	size_t i_begin(0), i_end(fragmentsSz - 1), j_begin(0), j_end(fragmentsSz - 1);
 
 
 	if (int32_t tmp = leftTop.x - bitmapCoords.leftTop.x; tmp > 0)
@@ -207,7 +217,7 @@ bool LayoutBitmapGenerator::pushRectangle(std::list<std::shared_ptr<Geometry>>::
 	const Coord& leftTop = (*rect)->coords[0];
 	const Coord& rightBot = (*rect)->coords[2];
 	//printf("type:rectangle\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", leftTop.x, leftTop.y, rightBot.x, rightBot.y);
-	size_t i_begin(0), i_end(fragmentsSize - 1), j_begin(0), j_end(fragmentsSize - 1);
+	size_t i_begin(0), i_end(fragmentsSz - 1), j_begin(0), j_end(fragmentsSz - 1);
 
 
 	if (int32_t tmp = leftTop.x - bitmapCoords.leftTop.x; tmp > 0)
@@ -234,10 +244,12 @@ bool LayoutBitmapGenerator::pushRectangle(std::list<std::shared_ptr<Geometry>>::
 
 //Initialization vector of elements
 
-inline bool LayoutBitmapGenerator::GeometryWorkspaceIntersection(Geometry* item)
+inline
+bool 
+LayoutBitmapGenerator::GeometryWorkspaceIntersection(
+	Geometry* item)
 {
-	if (!item)
-		return false;
+	if (!item) { return false;}
 
 	//Checking if rectangle faces are located outside workspace
 	//printf("type:rectangle\nmin = (%d,%d)\nmax = (%d,%d)\n", item->min.x, item->min.y, item->max.x, item->max.y);
@@ -246,62 +258,74 @@ inline bool LayoutBitmapGenerator::GeometryWorkspaceIntersection(Geometry* item)
 	//	std::cout << "outside\n";
 		return false;
 	}
-
 	//std::cout << "inside\n";
 	return true;
 }
 
-void LayoutBitmapGenerator::processGeometries( const std::vector<Geometry*>& source)
+void
+LayoutBitmapGenerator::ProcessGeometries( 
+	const std::vector<Geometry*>& PreloadedGeometries)
 {
-	/*for (size_t i = 0; i < source.size(); i++)
+	for (size_t i = 0; i < PreloadedGeometries.size(); i++)
 	{
-		//std::cout << "\nGeometry[" << i << "]:\n";
-
-		if (GeometryWorkspaceIntersection(source[i]))//getting indecies of elements that are in workspace
+		if (GeometryWorkspaceIntersection(PreloadedGeometries[i]))//getting indecies of elements that are in workspace
 		{
-			switch (source[i]->type)
+			switch (PreloadedGeometries[i]->type)
 			{
-			case GeometryType::polygon:geometries.pushPrealoadedGeometry(source[i]); break;
-			case GeometryType::rectangle:geometries.pushPrealoadedGeometry(source[i]); break;
-				case GeometryType::path:
+				case GeometryType::rectangle:
+				case GeometryType::polygon:
 				{
-					auto rectangles = LayoutGeometries::splitPath(static_cast<Path*>(source[i]));
-					for (auto it = rectangles.begin(); it != rectangles.end(); i++)
-						if (GeometryWorkspaceIntersection(it->get()))
-							geometries.pushSelfGeneratedGeometry(*it);
+					legacyGeometryList.push_back(PreloadedGeometries[i]);
 					break;
 				}
+
+				case GeometryType::path:
+				{
+					GeometryList rectangles = GeometryConverter::PathToRectList(PreloadedGeometries[i]);
+					for (auto it : rectangles)//no ref coz geometryList contains shared_ptr
+					{
+						if(GeometryWorkspaceIntersection(it.get()))
+						{
+							geometryList.push_back(it);
+						}
+					}
+					break;
+				}
+
 				case GeometryType::reference:
 				{
-					auto splittedRef = LayoutGeometries::splitReference(static_cast<Reference*>(source[i]),Coord());
-					for (auto it = splittedRef.begin(); it != splittedRef.end(); i++)
-						if (GeometryWorkspaceIntersection(it->get()))
-							geometries.pushSelfGeneratedGeometry(*it);
+					GeometryList rectangles = GeometryConverter::SplitSref(PreloadedGeometries[i]);
+					for (auto it : rectangles)//no ref coz geometryList contains shared_ptr
+					{
+						if(GeometryWorkspaceIntersection(it.get()))
+						{
+							geometryList.push_back(it);
+						}
+					}
 					break;
 				}
 			}
 		}
-	}*/
+	}
 }
 
-void LayoutBitmapGenerator::getLayerItems()
+
+void
+LayoutBitmapGenerator::InitGeometryItems()
 {
-	//std::cout << "\nGetting items from necessary layers\n";
-	for (size_t i = 0; i < data->libraries.size(); i++)
+	for (auto& currLib : data->libraries)
 	{
 		for (size_t j = 0; j < layers.size(); j++)
 		{
-			for (size_t k = 0; k < data->libraries[i]->layers.size(); k++)
+			for (auto& currLayer: currLib->layers)
 			{
-				if (layers[j] == data->libraries[i]->layers[k].layer)
+				if (layers[j] == currLayer.layer)
 				{
-					//std::cout << "\nProcessing layer: " << data->libraries[i]->layers[k].layer;
-					processGeometries(data->libraries[i]->layers[k].geometries);
+					ProcessGeometries(currLayer.geometries);
 					break;
 				}
 			}
 		}
-		
 	}
 }
 
@@ -315,12 +339,12 @@ void LayoutBitmapGenerator::getLayerItems()
 
 void LayoutBitmapGenerator::allocFragments()
 {
-	if (fragmentsSize == 0)
+	if (fragmentsSz == 0)
 		return;
-	fragments = new Fragment * [fragmentsSize];
-	for (size_t i = 0; i < fragmentsSize; i++)
+	fragments = new Fragment * [fragmentsSz];
+	for (size_t i = 0; i < fragmentsSz; i++)
 	{
-		fragments[i] = new Fragment[fragmentsSize];
+		fragments[i] = new Fragment[fragmentsSz];
 	}
 }
 
@@ -330,13 +354,13 @@ void LayoutBitmapGenerator::reset()
 	data = nullptr;
 	if (fragments != nullptr)
 	{
-		for (size_t i = 0; i < fragmentsSize; i++)
+		for (size_t i = 0; i < fragmentsSz; i++)
 		{
-			delete[] fragments[i];
-			fragments[i] = nullptr;
+			for(size_t j = 0; j < fragmentsSz; j++)
+			{
+				fragments[i][j].Reset();
+			}
 		}
-		delete fragments;
-		fragments = nullptr;
 	}
 }
 

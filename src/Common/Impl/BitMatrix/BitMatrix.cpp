@@ -320,7 +320,7 @@ void BitMatrix::Randm()
 
 }
 
-void BitMatrix::resize(size_t RowCnt, size_t ColCnt)
+void BitMatrix::Resize(size_t RowCnt, size_t ColCnt)
 {
 	if (RowCnt <= 0 || ColCnt <= 0) throw std::runtime_error("Matrix resize parameters error!");
 	

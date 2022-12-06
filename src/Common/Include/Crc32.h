@@ -3,12 +3,12 @@
 
 #include <cstdint>
 
-using CRC32_HASH = uint32_t;
+using Crc32Hash = uint32_t;
 
 namespace Crc32
 {
    //only for LittleEndian
-   CRC32_HASH CalcHash(const char* Data, uint32_t DataSz);
+   Crc32Hash CalcHash(const char* Data, uint32_t DataSz);
 }
 
 #endif//!__CRC_32_H__

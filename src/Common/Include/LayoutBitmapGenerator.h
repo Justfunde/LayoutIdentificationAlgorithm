@@ -1,10 +1,10 @@
-#pragma once
 #include "Include/LayoutData.hpp"
+#include "Include/LayoutConverter.h"
 #include "Include/LayoutMatrix.h"
 #include "Include/LayoutFragment.h"
 #include <stdio.h>
 
-constexpr double eps = 0.0000000000001;
+
 
 
 
@@ -19,18 +19,23 @@ private:
 	//Calculating inside generator
 	LayoutMatrixPtr           bitmap;
 	Fragment**				  fragments;
-	size_t	    			  fragmentsSize;
+	size_t	    			  fragmentsSz;
+	GeometryList              geometryList;
+	LegacyGeometryList        legacyGeometryList;
+
+
 	//LayoutGeometries        geometries;
-	double  				  dx,dy;
+	double  				  dx, dy;
 	bool                      isCorrect;
+	double                    eps = 0.0000000000001;
 
 	
 public:
-	LayoutBitmapGenerator() : data(nullptr), fragments(nullptr), fragmentsSize(2), dx(0), dy(0), isCorrect(false) {}
+	LayoutBitmapGenerator();
 	~LayoutBitmapGenerator();
 	
-	bool init(LayoutData* data,const Coord& leftTop, const Coord& rightBot, const std::vector <int16_t>& layers);
-	bool process(size_t iSize,size_t jSize);
+	bool Init(LayoutData* data,const Coord& leftTop, const Coord& rightBot, const std::vector <int16_t>& layers);
+	bool Process(size_t iSize,size_t jSize);
 	LayoutMatrix getMatrix() const;
 
 private:
@@ -40,14 +45,14 @@ private:
 	void zondRectangle(Rectangle* rect);
 	
 	//Fragment initialization
-	void initFragmentsWorkspaces();
-	void distributeGeometries();
+	void InitFragmentsWorkspaces();
+	void DistributeGeometries();
 	void initFragmentsIndicies();
 
 	//Init vector of elements inside workspace
-	void getLayerItems();
+	void InitGeometryItems();
 
-	void processGeometries (const std::vector<Geometry*>& source);
+	void ProcessGeometries (const std::vector<Geometry*>& source);
 	inline bool GeometryWorkspaceIntersection(Geometry* item);
 
 	//Pushing items into fragments
@@ -62,12 +67,4 @@ private:
 };
 
 
-inline double calcDelta(const int32_t n1, const int32_t n2, const uint32_t split_count);
-
-
-class Layout_comparator {
-private:
-	std::pair <LayoutBitmapGenerator*, LayoutBitmapGenerator*> generators;
-
-
-};
+inline double СalcDelta(const int32_t n1, const int32_t n2, const uint32_t split_count);

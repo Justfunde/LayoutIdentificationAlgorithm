@@ -39,7 +39,7 @@ private:
 	
 
 	//Fragment init
-	void initFragmentsWorkspaces();
+	void InitFragmentsWorkspaces();
 	void initFragmentsGeometries();
 	void initFragmentsIndicies();
 

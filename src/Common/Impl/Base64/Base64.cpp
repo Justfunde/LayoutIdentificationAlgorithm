@@ -188,7 +188,7 @@ InRadix64Encode(
    if(Str2Encode.empty()) { return "";}
 
    std::string encodedStr = InBase64EncodeMime(Str2Encode);
-   CRC32_HASH hash = Crc32::CalcHash(encodedStr.c_str(),encodedStr.length());
+   Crc32Hash hash = Crc32::CalcHash(encodedStr.c_str(),encodedStr.length());
    if(0 == hash) { throw std::runtime_error("Crc32 hash was not calced!");}
 
    std::string str = InBase64Encode(std::string(reinterpret_cast<char*>(&hash),sizeof(hash)), false);
@@ -207,7 +207,7 @@ InRadix64Decode(
    const std::string crc32HashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen);
    const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - g_radixHashLen);
 
-   CRC32_HASH calcedHash = Crc32::CalcHash(noHashStr.c_str(),noHashStr.length());
+   Crc32Hash calcedHash = Crc32::CalcHash(noHashStr.c_str(),noHashStr.length());
    const std::string calcedHashStr = InBase64Encode(std::string_view(reinterpret_cast<char*>(&calcedHash),sizeof(calcedHash)), false);
    if(calcedHashStr != crc32HashStr) { throw std::runtime_error("Crc32 hash did not match!");}
    return InBase64DecodeWithSeparators(noHashStr);

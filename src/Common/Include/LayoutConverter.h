@@ -8,6 +8,7 @@
 
 using GeometryPtr  = std::shared_ptr<Geometry>;
 using GeometryList = std::list<std::shared_ptr<Geometry>>;
+using LegacyGeometryList = std::list<Geometry*>;
 
 
 namespace GeometryConverter
@@ -18,7 +19,7 @@ namespace GeometryConverter
     GeometryList
     SplitSref(
         const Geometry* Sref,
-        Coord Min);
+        Coord Min = {0,0});
 }
 
 #endif //!__LAYOUT_CONVERTER_H__

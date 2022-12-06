@@ -7,13 +7,14 @@ constexpr double eps = 0.0000000000001;
 
 inline
 double
-calcDelta(
+СalcDelta(
 	int32_t N1,
 	int32_t N2,
 	uint32_t PartCnt)
 {
 	return fabs(N2 - N1) / PartCnt;
 }
+
 
 Indicies Indicies::normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx, const Indicies& boundIndicies)
 {
@@ -105,6 +106,18 @@ Indicies Indicies::normIndicies(double iBegin, double iEnd, double dy, double jB
 }
 
 
+
+void 
+Fragment::Reset()
+{
+	angleCoords.setAngleCoords({0,0}, {0,0});
+	boundIndicies = {0, 0, 0, 0};
+	includedItems.clear();
+	layoutMatrix.reset();
+	dx = 0;
+	dy = 0;
+}
+
 void
 Fragment::SetMatrix(
 	LayoutMatrixPtr Matrix)
@@ -150,8 +163,8 @@ Fragment::ProcessMatrix()
 {
 	if (!layoutMatrix) { throw std::runtime_error("Matrix was not initialized"); }
 
-	dx = calcDelta(angleCoords.leftTop.x, angleCoords.rightBot.x, boundIndicies.jEnd - boundIndicies.jBegin + 1);
-	dy = calcDelta(angleCoords.leftTop.y, angleCoords.rightBot.y, boundIndicies.iEnd - boundIndicies.iBegin + 1);
+	dx = СalcDelta(angleCoords.leftTop.x, angleCoords.rightBot.x, boundIndicies.jEnd - boundIndicies.jBegin + 1);
+	dy = СalcDelta(angleCoords.leftTop.y, angleCoords.rightBot.y, boundIndicies.iEnd - boundIndicies.iBegin + 1);
 
 	//std::cout << "dx = " << dx << "\ndy = " << dy << std::endl;
 

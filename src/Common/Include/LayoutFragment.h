@@ -16,9 +16,6 @@
 class Fragment
 {
     private:
-
-
-
 	WorkspaceCoords				    angleCoords;
     Indicies                        boundIndicies;
 	std::list <Geometry*>		    includedItems;
@@ -38,8 +35,9 @@ public:
 
     void PushGeometry(Geometry* Obj);
 
-
 	void ProcessMatrix();
+
+	void Reset();
 	
     private:
 	// Zonding geometry elements
