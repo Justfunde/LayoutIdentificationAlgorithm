@@ -15,6 +15,22 @@ double
 	return fabs(N2 - N1) / PartCnt;
 }
 
+bool 
+Fragment::GeometryWorkspaceIntersection(
+	Geometry* item)
+{
+	if (!item) { return false;}
+
+	//Checking if rectangle faces are located outside workspace
+	//printf("type:rectangle\nmin = (%d,%d)\nmax = (%d,%d)\n", item->min.x, item->min.y, item->max.x, item->max.y);
+	if (item->min.x > angleCoords.rightBot.x || item->max.x < angleCoords.leftTop.x || item->max.y<angleCoords.rightBot.y || item->min.y>angleCoords.leftTop.y)
+	{
+	//	std::cout << "outside\n";
+		return false;
+	}
+	//std::cout << "inside\n";
+	return true;
+}
 
 Indicies Indicies::normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx, const Indicies& boundIndicies)
 {
@@ -149,13 +165,7 @@ Fragment::SetIndicies(
 }
 
 
-void
-Fragment::PushGeometry(
-	Geometry* Obj)
-{
-	if(!Obj) { throw std::invalid_argument("Obj is nullptr");}
-	includedItems.push_back(Obj);
-}
+
 
 
 void
@@ -178,7 +188,7 @@ Fragment::ProcessMatrix()
 		case GeometryType::path:
 			break;
 		case GeometryType::rectangle:
-			ZondRectangle(it);
+			ZondRectangle(it.get());
 			break;
 		case GeometryType::reference:
 			break;

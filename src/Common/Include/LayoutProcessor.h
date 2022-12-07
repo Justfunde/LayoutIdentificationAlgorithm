@@ -41,7 +41,7 @@ private:
 	//Fragment init
 	void InitFragmentsWorkspaces();
 	void initFragmentsGeometries();
-	void initFragmentsIndicies();
+	void InitFragmentsIndicies();
 
 	//Init vector of elements inside workspace
 	std::vector<Geometry*> getLayerItems();

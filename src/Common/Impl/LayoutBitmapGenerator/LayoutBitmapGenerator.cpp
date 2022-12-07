@@ -63,8 +63,8 @@ LayoutBitmapGenerator::Process(
 	InitGeometryItems();
 	InitFragmentsWorkspaces();
 	DistributeGeometries();
-	initFragmentsIndicies();
-	firstMatrixInit();
+	InitFragmentsIndicies();
+	FirstMatrixInit();
 
 	//bitmap.print();
 	//cout << "\n\n\nFilling matrix:\n";
@@ -105,11 +105,12 @@ LayoutMatrix LayoutBitmapGenerator::getMatrix() const
 
 //First matrix initialization
 
-void LayoutBitmapGenerator::firstMatrixInit()
+void LayoutBitmapGenerator::FirstMatrixInit()
 {
 	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetIsize());
 	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetJsize());
-	/*for (auto it = geometries.dataGeometries.begin(); it != geometries.dataGeometries.end(); it++)
+	/*
+	for (auto it : geometryList)
 	{
 		switch ((*it)->type)
 		{
@@ -130,44 +131,82 @@ void LayoutBitmapGenerator::firstMatrixInit()
 
 void LayoutBitmapGenerator::InitFragmentsWorkspaces()
 {
-	//std::cout << "\n\n\nFragments angle coordinates : \n";
-
 	for (size_t i = 0; i < fragmentsSz; i++)
+	{
 		for (size_t j = 0; j < fragmentsSz; j++)
 		{
-			//fragments[i][j].SetWorkspaceCoords(Coord(bitmapCoords.leftTop.x + j * dx, bitmapCoords.leftTop.y - i * dy), Coord(bitmapCoords.leftTop.x + (j + 1) * dx, bitmapCoords.leftTop.y - (i + 1) * dy));
-			//fragments[i][j].p_bitmapCoords = &bitmapCoords;
+			WorkspaceCoords tmp;
+			tmp.setAngleCoords(Coord(bitmapCoords.leftTop.x + j * dx, bitmapCoords.leftTop.y - i * dy), Coord(bitmapCoords.leftTop.x + (j + 1) * dx, bitmapCoords.leftTop.y - (i + 1) * dy));
+			fragments[i][j].SetWorkspaceCoords(tmp);
+			fragments[i][j].SetMatrix(bitmap);
 			//printf("[%d][%d]:\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", i, j, fragments[i][j].angleCoords.leftTop.x, fragments[i][j].angleCoords.leftTop.y, fragments[i][j].angleCoords.rightBot.x, fragments[i][j].angleCoords.rightBot.y);
 		}
+	}
 
+}
+
+uint32_t
+LayoutBitmapGenerator::GetFragmentIntersectionCnt(
+	Geometry* Geom)
+{
+	if(nullptr == Geom) { return 0;}
+
+	uint32_t intersectionCnt = 0;
+	for(size_t i = 0; i < fragmentsSz; ++i)
+	{
+		for(size_t j = 0; j < fragmentsSz; ++j)
+		{
+			if(fragments[i][j].GeometryWorkspaceIntersection(Geom))
+			{
+				intersectionCnt++;
+			}
+		}
+	}
+	return intersectionCnt;
 }
 
 void LayoutBitmapGenerator::DistributeGeometries()
 {
-	/*
-	//std::cout << "\n\n\nFragments geometries:\n";
-	//std::cout << "\nPushing items into fragments\n";
-	size_t i = 0;
-	//std::cout << "Processing data(preloaded) geometries\n";
-	for (auto preloaded = geometries.dataGeometries.begin(); preloaded != geometries.dataGeometries.end(); preloaded++,i++)
+	constexpr uint32_t intersectionCntEtalon = 2;
+	for(GeometryList::iterator geomIter = geometryList.begin(); geomIter != geometryList.end(); ++geomIter)
 	{
-		//std::cout << "\nGeometry[" << i << "]:\n";
-		if ((*preloaded)->type == GeometryType::rectangle)
-			if (pushRectangle(preloaded))
-				preloaded = geometries.deleteDataGeometries(preloaded);
+		if(intersectionCntEtalon < GetFragmentIntersectionCnt((*geomIter).get())) { continue; } // GetFragmentIntersectionCnt will not return 0
+
+		for(size_t i = 0; i < fragmentsSz; i++)
+		{
+			for(size_t j = 0; j < fragmentsSz; j++)
+			{
+				if(GeometryWorkspaceIntersection((*geomIter).get()))
+				{
+					fragments[i][j].PushGeometry(*geomIter);
+				}
+			}
+		}
+		geomIter = geometryList.erase(geomIter);
+		std::prev(geomIter);
 	}
-	i = 0;
-	//std::cout << "\nProcessing self generated geometries\n";
-	for (auto selfGen = geometries.selfGeneratedGeometries.begin(); selfGen != geometries.selfGeneratedGeometries.end(); selfGen++,i++)
+
+	for(LegacyGeometryList::iterator legacyGeomIter = legacyGeometryList.begin(); legacyGeomIter != legacyGeometryList.end(); ++legacyGeomIter)
 	{
-		//std::cout << "\nGeometry[" << i << "]:\n";
-		if (pushRectangle(selfGen))
-			selfGen = geometries.deletesSelfGenGeometry(selfGen);
+		if(intersectionCntEtalon < GetFragmentIntersectionCnt(*legacyGeomIter)) { continue; } // GetFragmentIntersectionCnt will not return 0
+
+		for(size_t i = 0; i < fragmentsSz; i++)
+		{
+			for(size_t j = 0; j < fragmentsSz; j++)
+			{
+				if(GeometryWorkspaceIntersection(*legacyGeomIter))
+				{
+					fragments[i][j].PushGeometry(*legacyGeomIter);
+				}
+			}
+		}
+		legacyGeomIter = legacyGeometryList.erase(legacyGeomIter);
+		std::prev(legacyGeomIter);
 	}
-	*/
 }
 
-void LayoutBitmapGenerator::initFragmentsIndicies()
+void
+LayoutBitmapGenerator::InitFragmentsIndicies()
 {
 	//std::cout << "\nInit fragment indicies\n";
 	const size_t i_add = bitmap->GetIsize() / fragmentsSz;

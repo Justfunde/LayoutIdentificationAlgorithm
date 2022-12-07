@@ -39,7 +39,10 @@ public:
 	LayoutMatrix getMatrix() const;
 
 private:
-	void firstMatrixInit();
+
+	uint32_t GetFragmentIntersectionCnt(Geometry* Geom);
+
+	void FirstMatrixInit();
 
 	//Zonding
 	void zondRectangle(Rectangle* rect);
@@ -47,13 +50,16 @@ private:
 	//Fragment initialization
 	void InitFragmentsWorkspaces();
 	void DistributeGeometries();
-	void initFragmentsIndicies();
+	void InitFragmentsIndicies();
 
 	//Init vector of elements inside workspace
 	void InitGeometryItems();
 
 	void ProcessGeometries (const std::vector<Geometry*>& source);
 	inline bool GeometryWorkspaceIntersection(Geometry* item);
+
+
+	
 
 	//Pushing items into fragments
 	bool pushRectangle(std::list<Geometry*>::const_iterator rect);
