@@ -73,7 +73,7 @@ LayoutBitmapGenerator::Process(
 		for (size_t j = 0; j < fragmentsSz; j++)
 		{
 			//cout << "\nFragment[" << i << "][" << j << "]\n";
-			fragments[i][j].ProcessMatrix();
+			fragments[i][j].Process();
 		}
 	}
 	//cout << endl << endl << endl << endl;
@@ -109,23 +109,45 @@ void LayoutBitmapGenerator::FirstMatrixInit()
 {
 	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetIsize());
 	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetJsize());
-	/*
+	
+
 	for (auto it : geometryList)
 	{
-		switch ((*it)->type)
+		switch (it->type)
 		{
-		case GeometryType::polygon:
-			break;
-		case GeometryType::rectangle:
-			zondRectangle(static_cast<Rectangle*>(*it));
-			break;
+			case GeometryType::polygon:
+			{
+				ZondPolygon(it.get());
+				break;
+			}
+			case GeometryType::rectangle:
+			{
+				ZondRectangle(it.get());
+				break;
+			}
+			default: {throw std::runtime_error("Invalid geometry type");}
 		}
 	}
-	for (auto it = geometries.selfGeneratedGeometries.begin(); it != geometries.selfGeneratedGeometries.end(); it++)
+
+	for (auto it : legacyGeometryList)
 	{
-		zondRectangle(static_cast<Rectangle*>(it->get()));
-	}*/
+		switch (it->type)
+		{
+			case GeometryType::polygon:
+			{
+				ZondPolygon(it);
+				break;
+			}
+			case GeometryType::rectangle:
+			{
+				ZondRectangle(it);
+				break;
+			}
+			default: { throw std::runtime_error("Invalid geometry type"); }
+		}
+	}
 }
+
 
 //Fragment initialization
 
@@ -369,10 +391,6 @@ LayoutBitmapGenerator::InitGeometryItems()
 }
 
 
-
-
-
-
 //utility methods
 
 
@@ -414,7 +432,7 @@ LayoutBitmapGenerator::~LayoutBitmapGenerator()
 
 
 
-void LayoutBitmapGenerator::zondRectangle(Rectangle* rect)
+void LayoutBitmapGenerator::ZondRectangle(Geometry* rect)
 {
 	const Coord& leftTop = rect->coords[0];
 	const Coord& rightBot = rect->coords[2];

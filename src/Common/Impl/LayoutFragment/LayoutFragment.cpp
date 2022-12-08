@@ -169,7 +169,7 @@ Fragment::SetIndicies(
 
 
 void
-Fragment::ProcessMatrix()
+Fragment::Process()
 {
 	if (!layoutMatrix) { throw std::runtime_error("Matrix was not initialized"); }
 
@@ -185,12 +185,8 @@ Fragment::ProcessMatrix()
 		{
 		case GeometryType::polygon:
 			break;
-		case GeometryType::path:
-			break;
 		case GeometryType::rectangle:
 			ZondRectangle(it.get());
-			break;
-		case GeometryType::reference:
 			break;
 		default:
 			break;

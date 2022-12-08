@@ -6,8 +6,6 @@
 
 
 
-
-
 class LayoutBitmapGenerator {
 private:
 
@@ -45,7 +43,8 @@ private:
 	void FirstMatrixInit();
 
 	//Zonding
-	void zondRectangle(Rectangle* rect);
+	void ZondRectangle(Geometry* Rect);
+	void ZondPolygon(Geometry* Poly);
 	
 	//Fragment initialization
 	void InitFragmentsWorkspaces();

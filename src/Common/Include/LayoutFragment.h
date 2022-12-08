@@ -38,7 +38,7 @@ public:
    	void PushGeometry(Geometry* Geom) { legacyGeometryList.push_back(Geom);}
 	void PushGeometry(GeometryPtr Geom) { includedItems.push_back(Geom); }
 
-	void ProcessMatrix();
+	void Process();
 
 	void Reset();
 	
