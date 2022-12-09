@@ -9,6 +9,8 @@
 #include <ctime>
 #include <string_view>
 
+#include "Vector2D.h"
+
 
 #define BIT(n)         (1U << (n))
 
