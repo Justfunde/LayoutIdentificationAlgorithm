@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "Include/LayoutFragment.h"
 
 constexpr double eps = 0.0000000000001;

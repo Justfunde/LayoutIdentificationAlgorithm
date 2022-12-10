@@ -1,3 +1,7 @@
+#include <iostream>
+#include <random>
+#include <ctime>
+
 #include "Include/BitMatrix.h"
 
 
@@ -77,9 +81,9 @@ BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
 	BitMatrix result(FirstMatr.Isize, FirstMatr.Jsize);
 	if (!result) { throw std::runtime_error("Result XOR object was not constructed");}
 
-	for (size_t i = 0; i < FirstMatr.Bitmap.RowSize(); i++)
+	for (size_t i = 0; i < FirstMatr.Bitmap.RowCount(); i++)
 	{
-		for (size_t j = 0; j < FirstMatr.Bitmap.RowSize(); j++)
+		for (size_t j = 0; j < FirstMatr.Bitmap.ColCnt(); j++)
 		{
 			result.Bitmap[i][j] = FirstMatr.Bitmap[i][j] ^ SecondMatr.Bitmap[i][j];
 		}
@@ -160,7 +164,7 @@ void BitMatrix::Set(size_t i, size_t j, bool Value)
 
 void BitMatrix::SetByte(size_t iBytePos, size_t jBytePos, char Value)
 {
-	if(iBytePos >= Bitmap.RowSize() || jBytePos > Bitmap.ColCnt()) { throw std::invalid_argument("Invalid index");}
+	if(iBytePos >= Bitmap.RowCount() || jBytePos > Bitmap.ColCnt()) { throw std::invalid_argument("Invalid index");}
 
 	Bitmap[iBytePos][jBytePos] = Value;
 }
@@ -280,7 +284,7 @@ void BitMatrix::Ones()
 
 void BitMatrix::Zeros()
 {
-	for (size_t i = 0; i < Bitmap.RowSize(); i++)
+	for (size_t i = 0; i < Bitmap.RowCount(); i++)
 		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
 			Bitmap[i][j] = 0;
 }
@@ -317,8 +321,8 @@ std::string BitMatrix::ToString() const
 	if (Isize == 0 || Jsize == 0) { return std::string(); }
 
 	std::string str;
-	str.reserve(Bitmap.RowSize() * Bitmap.ColCnt());
-	for (size_t i = 0; i < Bitmap.RowSize(); i++)
+	str.reserve(Bitmap.RowCount() * Bitmap.ColCnt());
+	for (size_t i = 0; i < Bitmap.RowCount(); i++)
 	{
 		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
 		{

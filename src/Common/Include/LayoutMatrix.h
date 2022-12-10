@@ -33,7 +33,7 @@ public:
 	LayoutMatrix():BitMatrix() {}
 	LayoutMatrix(const std::string& in_hash);
 	LayoutMatrix(size_t i, size_t j) :BitMatrix(i, j) {}
-	LayoutMatrix(BitMatrix matrix):BitMatrix(matrix) {}
+	LayoutMatrix(const BitMatrix& matrix):BitMatrix(matrix) {}
 	LayoutMatrix(const LayoutMatrix& matrix);
 	LayoutMatrix(LayoutMatrix&& matrix) noexcept;
 	LayoutMatrix(BitMatrix&& matrix) noexcept;

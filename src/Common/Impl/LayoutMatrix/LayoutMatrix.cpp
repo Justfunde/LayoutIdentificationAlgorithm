@@ -1,4 +1,3 @@
-#pragma warning(disable:4293)
 #include "Include/LayoutMatrix.h"
 #include "Include/RunLengthEncoding.h"
 #include "Include/ByteHandler.h"
@@ -65,24 +64,15 @@ LayoutMatrix::LayoutMatrix(const LayoutMatrix& matrix) :BitMatrix(matrix)
 
 LayoutMatrix::LayoutMatrix(LayoutMatrix&& matrix) noexcept
 {
-	ColCnt = matrix.ColCnt;
-	RowCnt = matrix.RowCnt;
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	IsAlloced = matrix.IsAlloced;
 	Bitmap = matrix.Bitmap;
-	matrix.Bitmap = nullptr;
 }
 
 LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
 {
-	ColCnt = matrix.ColCnt;
-	RowCnt = matrix.RowCnt;
 	Isize = matrix.Isize;
-	Jsize = matrix.Jsize;
-	IsAlloced = matrix.IsAlloced;
 	Bitmap = matrix.Bitmap;
-	matrix.Bitmap = nullptr;
 }
 
 
@@ -90,19 +80,13 @@ LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
 
 LayoutMatrix& LayoutMatrix::operator=(const BitMatrix& matrix)
 {
-	if (!matrix.IsAlloced)
-		return *this;
 	if (&matrix == this)
 		return *this;
 	try {
 		Reset();
-		RowCnt = matrix.RowCnt;
-		ColCnt = matrix.ColCnt;
 		Isize = matrix.Isize;
 		Jsize = matrix.Jsize;
-
-		AllocMatrix();
-		CpyBitmap(Bitmap, matrix.Bitmap, ColCnt, RowCnt);
+		Bitmap = matrix.Bitmap;
 	}
 	catch (std::exception& exception)
 	{
@@ -114,19 +98,14 @@ LayoutMatrix& LayoutMatrix::operator=(const BitMatrix& matrix)
 
 LayoutMatrix& LayoutMatrix::operator=(const LayoutMatrix& matrix)
 {
-	if (!matrix.IsAlloced)
-		return *this;
 	if (&matrix == this)
 		return *this;
 	try {
 	Reset();
-	RowCnt = matrix.RowCnt;
-	ColCnt = matrix.ColCnt;
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
+	Bitmap = matrix.Bitmap;
 	
-		AllocMatrix();
-		CpyBitmap(Bitmap, matrix.Bitmap, ColCnt, RowCnt);
 	}
 	catch (std::exception& exception)
 	{
@@ -141,25 +120,18 @@ LayoutMatrix& LayoutMatrix::operator=(BitMatrix&& matrix) noexcept
 	Reset();
 
 	Bitmap = matrix.Bitmap;
-	matrix.Bitmap = nullptr;
-	ColCnt = matrix.ColCnt;
-	RowCnt = matrix.RowCnt;
+	matrix.Bitmap = std::move(matrix.Bitmap);
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	IsAlloced = matrix.IsAlloced;
 	return *this;
 }
 
 LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 {
 	Reset();
-	Bitmap = matrix.Bitmap;
-	matrix.Bitmap = nullptr;
-	ColCnt = matrix.ColCnt;
-	RowCnt = matrix.RowCnt;
+	Bitmap = std::move(matrix.Bitmap);
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
-	IsAlloced = matrix.IsAlloced;
 	return *this;
 }
 

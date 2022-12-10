@@ -1,6 +1,6 @@
 set(SOURCES_LIST BitMatrixTest.cpp)
 
-set(LIBS_LIST LayoutMatrix BitMatrix Base64 RLE Crc32 ByteHandler)
+set(LIBS_LIST  LayoutMatrix BitMatrix Vector2D Base64 RLE Crc32 ByteHandler)
 
 add_unit_test(
    NAME Test__BitMatrixFuzzing

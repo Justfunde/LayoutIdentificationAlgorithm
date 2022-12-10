@@ -1,6 +1,6 @@
 set(SOURCES_LIST BitmapGeneratorTest.cpp)
 
-set(LIBS_LIST LayoutMatrix BitMatrix Base64 RLE Crc32 ByteHandler ByteHandler Base64 RLE Crc32 BitMatrix LayoutMatrix LayoutProcessor LayoutFragment  LayoutReader)
+set(LIBS_LIST Vector2D LayoutMatrix BitMatrix Base64 RLE Crc32 ByteHandler ByteHandler Base64 RLE Crc32 BitMatrix LayoutMatrix LayoutProcessor LayoutFragment  LayoutReader)
 
 
 add_unit_test(

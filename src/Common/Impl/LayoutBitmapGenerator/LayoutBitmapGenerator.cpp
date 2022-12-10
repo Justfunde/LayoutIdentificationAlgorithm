@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "Include/LayoutBitmapGenerator.h"
 #include "Include/LayoutConverter.h"
 

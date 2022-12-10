@@ -1,13 +1,8 @@
-#ifndef __BIT_MATRIX_H
-#define __BIT_MATRIX_H
+#ifndef __BIT_MATRIX_H__
+#define __BIT_MATRIX_H__
 
-
-#include <vector>
-#include <iostream>
-#include <cassert>
-#include <random>
-#include <ctime>
 #include <string_view>
+
 
 #include "Vector2D.h"
 
@@ -17,7 +12,7 @@
 class BitMatrix{
 protected:
 	Vector2D<uint8_t>  	         Bitmap;
-	uint32_t                     Jsize, Isize;
+	size_t                       Jsize, Isize;
 	
 public:
 	BitMatrix() : Jsize(0), Isize(0) { }
@@ -77,4 +72,4 @@ public:
 	friend class LayoutMatrix;
 };
 
-#endif //!__BIT_MATRIX_H
+#endif //!__BIT_MATRIX_H__
