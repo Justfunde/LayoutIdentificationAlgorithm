@@ -32,6 +32,22 @@ Vector2D<T>::Vector2D(
     data = std::move(Rhs.data);
 }
 
+template <typename T>
+Vector2D<T>&
+Vector2D<T>::operator=(
+    const Vector2D<T>& Rhs)
+{
+     data = Rhs.data;
+}
+
+template <typename T>
+Vector2D<T>&
+Vector2D<T>::operator=(
+    Vector2D<T>&& Rhs)
+{
+    data = std::move(Rhs.data);
+}
+
 
 template <typename T>
 void
@@ -71,17 +87,10 @@ Vector2D<T>::IsIndexValid(
 }
 
 
-template <typename T>
+/*template <typename T>
 inline
 bool
 Vector2D<T>::CheckParameters()
 {
-    if(data.size() == 0) { return false;}
-
-    const size_t etalonSz = data[0].size();
-    for(size_t i = 0; i < data.size(); ++i)
-    {
-        if(0 == data[i].size() || etalonSz != data[i].size()) { return false;}
-    }
-    return true;
-}
+    
+}*/

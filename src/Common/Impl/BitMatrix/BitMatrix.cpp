@@ -3,14 +3,28 @@
 
 constexpr uint8_t g_BitsInByte = 8;
 
+BitMatrix::BitMatrix(const BitMatrix& Rhs)
+{
+	try {
+		Bitmap = Rhs.Bitmap;
+		Isize = Rhs.Isize;
+		Jsize = Rhs.Jsize;
+	}
+	catch (const std::exception& exception)
+	{
+		std::cerr << "\nBitMatrix constructor error:" << exception.what();
+		Reset();
+	}
+}
+
 
 BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
 {
 	try{
-	this->RowCnt = RowCnt;
-	this->ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
-	
-	AllocMatrix();
+		
+		const size_t colCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
+
+		Bitmap.Resize(RowCnt, colCnt);
 	}
 	catch (const std::exception& exception)
 	{
@@ -20,34 +34,13 @@ BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
 }
 
 
-BitMatrix::BitMatrix(const BitMatrix& Rhs) :IsAlloced(false)
-{
-	try {
-		RowCnt = Rhs.RowCnt;
-		ColCnt = Rhs.ColCnt;
-		Isize = Rhs.Isize;
-		Jsize = Rhs.Jsize;
 
-		if (Rhs.IsAlloced) { AllocMatrix();}
-
-		if (!CpyBitmap(Bitmap, Rhs.Bitmap, ColCnt, RowCnt)) { throw std::runtime_error("Matrix copy constructor error"); }
-	}
-	catch (const std::exception& exception)
-	{
-		std::cerr << "\nBitMatrix constructor error:" << exception.what();
-		Reset();
-	}
-}
 
 BitMatrix::BitMatrix(BitMatrix&& Rhs) noexcept
 {
-	ColCnt = Rhs.ColCnt;
-	RowCnt = Rhs.RowCnt;
 	Isize = Rhs.Isize;
 	Jsize = Rhs.Jsize;
-	IsAlloced = Rhs.IsAlloced;
-	Bitmap = Rhs.Bitmap;
-	Rhs.Bitmap = nullptr;
+	Bitmap = std::move(Rhs.Bitmap);
 }
 
 BitMatrix::~BitMatrix()
@@ -62,36 +55,31 @@ BitMatrix& BitMatrix::operator=(const BitMatrix& Rhs)
 	if (&Rhs == this)
 		return *this;
 	
-	BitMatrix tmp = Rhs;
-	*this = std::move(tmp);
+	Bitmap = Rhs.Bitmap;
+	Isize = Rhs.Isize;
+	Jsize = Rhs.Jsize;
 	return *this;
 }
 
 BitMatrix& BitMatrix::operator=(BitMatrix&& Rhs) noexcept
 {
 	Reset();
-	Bitmap = Rhs.Bitmap;
-	Rhs.Bitmap = nullptr;
-	ColCnt = Rhs.ColCnt;
-	RowCnt = Rhs.RowCnt;
+	Bitmap = std::move(Rhs.Bitmap);
 	Isize = Rhs.Isize;
 	Jsize = Rhs.Jsize;
-	IsAlloced = Rhs.IsAlloced;
 	return *this;
 }
 
 BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
 {
-	if (!FirstMatr.IsAlloced || !FirstMatr.Bitmap)   { throw std::invalid_argument("First argument is not allocated!"); }
-	if (!SecondMatr.IsAlloced || !SecondMatr.Bitmap) { throw std::invalid_argument("Second argument is not allocated!");}
 	if (FirstMatr.Jsize != SecondMatr.Jsize || FirstMatr.Isize != SecondMatr.Isize) { throw std::invalid_argument("Objects have uncomparable sizes!");}
 
 	BitMatrix result(FirstMatr.Isize, FirstMatr.Jsize);
 	if (!result) { throw std::runtime_error("Result XOR object was not constructed");}
 
-	for (size_t i = 0; i < FirstMatr.RowCnt; i++)
+	for (size_t i = 0; i < FirstMatr.Bitmap.RowSize(); i++)
 	{
-		for (size_t j = 0; j < FirstMatr.ColCnt; j++)
+		for (size_t j = 0; j < FirstMatr.Bitmap.RowSize(); j++)
 		{
 			result.Bitmap[i][j] = FirstMatr.Bitmap[i][j] ^ SecondMatr.Bitmap[i][j];
 		}
@@ -111,7 +99,7 @@ bool operator!=(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcep
 
 bool BitMatrix::operator!() noexcept
 {
-	if (!IsAlloced||!Bitmap) { return true;}
+	if (!Bitmap) { return true;}
 	if (Isize == 0 || Jsize == 0) { return true;}
 	return false;
 }
@@ -120,7 +108,6 @@ bool BitMatrix::operator!() noexcept
 
 bool BitMatrix::Get(size_t i, size_t j) const 
 {
-	if (!IsAlloced || !Bitmap) { throw std::runtime_error("Matrix is not alloced!");}
 	if (i >= Isize || j >= Jsize) {throw std::runtime_error("Invalid index"); }
 	//finding byte pos in arr
 	const size_t iBytePos = i;
@@ -136,7 +123,7 @@ bool BitMatrix::UnsafeGet(size_t i, size_t j) const
 
 bool BitMatrix::IsAllocated() const 
 { 
-	return IsAlloced; 
+	return true; 
 }
 
 uint32_t BitMatrix::GetIsize() const
@@ -153,7 +140,6 @@ uint32_t BitMatrix::GetJsize() const
 
 void BitMatrix::Set(size_t i, size_t j, bool Value)
 {
-	if (!IsAlloced || !Bitmap) { throw std::runtime_error("Matrix is not alloced!"); }
 	if (i >= Isize || j >= Jsize) {throw std::runtime_error("Invalid index"); }
 	
 	//finding byte pos in arr
@@ -174,7 +160,7 @@ void BitMatrix::Set(size_t i, size_t j, bool Value)
 
 void BitMatrix::SetByte(size_t iBytePos, size_t jBytePos, char Value)
 {
-	if(iBytePos >= RowCnt || jBytePos > ColCnt) { throw std::invalid_argument("Invalid index");}
+	if(iBytePos >= Bitmap.RowSize() || jBytePos > Bitmap.ColCnt()) { throw std::invalid_argument("Invalid index");}
 
 	Bitmap[iBytePos][jBytePos] = Value;
 }
@@ -209,7 +195,6 @@ void  BitMatrix::unsafeSetByte(size_t i, size_t j, bool value)
 
 void BitMatrix::SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd, bool Value)
 {
-	if (!IsAlloced||!Bitmap) throw std::runtime_error("Matrix is not alloced!");
 	if (iStart > iEnd || iEnd > Isize) throw std::runtime_error("Invalid i one of parameter");
 	if (jStart > jEnd || jEnd > Jsize) throw std::runtime_error("Invalid j one ofparameter");
 
@@ -225,8 +210,6 @@ void BitMatrix::SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd,
 
 void BitMatrix::Print() const noexcept
 {
-	if (!IsAlloced || !Bitmap) { std::cout << "NULL"; }
-
 	for (size_t i = 0; i < Isize; i++)
 	{
 		for (size_t j = 0; j < Jsize; j++)
@@ -241,7 +224,6 @@ double BitMatrix::CalcRatio(bool Value) const noexcept
 {
 	double unit = 0;
 	try {
-	if (!IsAlloced || !Bitmap) throw std::runtime_error("Matrix is not alloced!");
 
 		for (size_t i = 0; i < Isize; i++)
 		{
@@ -298,15 +280,13 @@ void BitMatrix::Ones()
 
 void BitMatrix::Zeros()
 {
-	if (!IsAlloced || !Bitmap) throw std::runtime_error("Matrix is not alloced!");
-	for (size_t i = 0; i < RowCnt; i++)
-		for (size_t j = 0; j < ColCnt; j++)
+	for (size_t i = 0; i < Bitmap.RowSize(); i++)
+		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
 			Bitmap[i][j] = 0;
 }
 
 void BitMatrix::Randm()
 {
-	if (!IsAlloced || !Bitmap) throw std::runtime_error("Matrix is not alloced!");
 	std::mt19937 engine; 
 	engine.seed(std::time(nullptr));
 	for (size_t i = 0; i < Isize; i++)
@@ -325,30 +305,22 @@ void BitMatrix::Resize(size_t RowCnt, size_t ColCnt)
 	if (RowCnt <= 0 || ColCnt <= 0) throw std::runtime_error("Matrix resize parameters error!");
 	
 	Reset();
-	RowCnt = Isize = RowCnt;
+	Isize = RowCnt;
 	Jsize = ColCnt;
-	ColCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
-	try {
-		AllocMatrix();
-	}
-	catch (const std::exception& exception)
-	{
-		std::cerr << "\nStandard error:" << exception.what();
-		Reset();
-	}
+	const size_t colCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
+	Bitmap.Resize(RowCnt, colCnt);
 }
 
 
 std::string BitMatrix::ToString() const 
 {
-	if (!IsAlloced || !Bitmap) { return std::string(); }
 	if (Isize == 0 || Jsize == 0) { return std::string(); }
 
 	std::string str;
-	str.reserve(ColCnt * RowCnt);
-	for (size_t i = 0; i < RowCnt; i++)
+	str.reserve(Bitmap.RowSize() * Bitmap.ColCnt());
+	for (size_t i = 0; i < Bitmap.RowSize(); i++)
 	{
-		for (size_t j = 0; j < ColCnt; j++)
+		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
 		{
 			str += Bitmap[i][j];
 		}
@@ -361,52 +333,12 @@ std::string BitMatrix::ToString() const
 //utility methods
 
 
-bool BitMatrix::CpyBitmap(int8_t** Dest, int8_t** Src,size_t ColCnt, const size_t RowCnt)
-{
-	if (!Dest || !Src) {return false;}
-		
-	for (size_t i = 0; i < RowCnt; i++)
-	{
-		for (size_t j = 0; j < ColCnt; j++)
-			Dest[i][j] = Src[i][j];
-	}
-	return true;
-}
-
-void BitMatrix::AllocMatrix()
-{
-	Bitmap = new int8_t * [RowCnt];
-	for (size_t i = 0; i < RowCnt; i++)
-	{
-		Bitmap[i] = new int8_t[ColCnt];
-	}
-	for (size_t i = 0; i < RowCnt; i++)
-	{
-		for (size_t j = 0; j < ColCnt; j++)
-		{
-			Bitmap[i][j] = 0;
-		}
-	}
-	IsAlloced = true;
-}
 
 void BitMatrix::Reset()
 {
-	if (Bitmap)
-	{
-		for (size_t i = 0; i < RowCnt; i++)
-		{
-			delete[] Bitmap[i];
-			Bitmap[i] = nullptr;
-		}
-		delete[] Bitmap;
-		Bitmap = nullptr;
-	}
-	IsAlloced = false;
+	Bitmap.Reset();
 	Isize = 0;
 	Jsize = 0;
-	ColCnt = 0;
-	RowCnt = 0;
 }
 
 

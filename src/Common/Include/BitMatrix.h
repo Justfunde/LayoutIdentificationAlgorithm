@@ -16,23 +16,25 @@
 
 class BitMatrix{
 protected:
-	int8_t**      	              Bitmap;
+	Vector2D<uint8_t>  	         Bitmap;
 	uint32_t                     Jsize, Isize;
-	uint32_t                     ColCnt, RowCnt;
-	bool                         IsAlloced;
 	
 public:
-	BitMatrix() :Bitmap(nullptr), ColCnt(0), RowCnt(0), Jsize(0), Isize(0), IsAlloced(false) {}
+	BitMatrix() : Jsize(0), Isize(0) { }
+
 	BitMatrix(size_t RowCnt, size_t ColCnt);
+
 	BitMatrix(const BitMatrix& Rhs);
+
 	BitMatrix(BitMatrix&& Rhs) noexcept;
+
 	virtual ~BitMatrix();
 
 
 	bool             Get(size_t i, size_t j) const;
 	bool             IsAllocated() const;
-	uint32_t           GetIsize() const;
-	uint32_t           GetJsize() const;
+	uint32_t         GetIsize() const;
+	uint32_t         GetJsize() const;
 	std::string      ToString() const;
 
 	static BitMatrix FromString(std::string_view Str, uint32_t RowCnt, uint32_t ColCnt);
@@ -66,7 +68,6 @@ protected:
 	inline bool      UnsafeGet(size_t i, size_t j) const;
 	inline void      UnsafeSet(size_t i, size_t j, bool Value);
 	bool             CpyBitmap(int8_t** Dest, int8_t** Src,size_t ColCnt, const size_t RowCnt);
-	void             AllocMatrix();
 	void             Reset();
 
 public:
