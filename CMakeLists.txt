@@ -21,6 +21,6 @@ include(UnitTestModule)
 include(DoxygenModule)
 include(CTest)
 
-CONFIGURE_DOXYGEN_FILE(${PROJECT_DIR})
+generate_doxygen(${PROJECT_DIR})
 
 add_subdirectory(src)

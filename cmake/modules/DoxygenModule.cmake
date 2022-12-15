@@ -1,4 +1,4 @@
-macro(CONFIGURE_DOXYGEN_FILE PROJECT_DIR)
+macro(generate_doxygen PROJECT_DIR)
 
     find_package(Doxygen)
     option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
@@ -22,4 +22,4 @@ macro(CONFIGURE_DOXYGEN_FILE PROJECT_DIR)
 
     endif()
 
-endmacro(CONFIGURE_DOXYGEN_FILE)
+endmacro(generate_doxygen)
