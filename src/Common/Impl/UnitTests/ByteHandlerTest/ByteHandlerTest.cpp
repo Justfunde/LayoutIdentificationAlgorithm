@@ -8,13 +8,13 @@ Test__ByteHandler()
 
    BEGIN_TEST_JOB
     //test getters
-   for(uint8_t i = 0; i < BITS_IN_BYTE; i++)
+   for(uint8_t i = 0; i < g_bitsInByte; i++)
    {
       TEST_ASSERT(ByteHandler::GetBit(testVar, i), 0, !=);
    }
 
    testVar = 0xFF;
-   for(uint8_t i = 0; i < BITS_IN_BYTE; i++)
+   for(uint8_t i = 0; i < g_bitsInByte; i++)
    {
       TEST_ASSERT(ByteHandler::GetBit(testVar, i), 1, !=);
    }
@@ -22,7 +22,7 @@ Test__ByteHandler()
    //test set-get combination
 
    testVar = 0;
-   for(int8_t i = BITS_IN_BYTE - 1; i >= 0; i--)
+   for(int8_t i = g_bitsInByte - 1; i >= 0; i--)
    {
    ByteHandler::SetBit(testVar, i, 1);
    TEST_ASSERT(ByteHandler::GetBit(testVar, i), 1, !=);

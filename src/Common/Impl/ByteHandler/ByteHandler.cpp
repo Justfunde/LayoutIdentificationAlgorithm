@@ -1,21 +1,24 @@
-﻿#include <stdexcept>
+﻿#include "Include/ByteHandler.h"
 
-#include "Include/ByteHandler.h"
+#include <stdexcept>
 
-#define MAX_BIT_POS(ArrSz) (BITS_IN_BYTE * (ArrSz) - 1)
+
+#define MAX_BIT_POS(ArrSz) (g_bitsInByte * (ArrSz) - 1)
+#define BIT(n) (1U << (n))
+
 
 constexpr size_t g_ptrSz = sizeof(void*); 
 
 void
 ByteHandler::SetBit(
-   uint8_t *Arr,
+   Byte *Arr,
    size_t ArrSz,
    size_t Pos,
    bool Value)
 {
    if(nullptr == Arr || g_ptrSz > ArrSz || MAX_BIT_POS(ArrSz) < Pos ) { throw std::invalid_argument("Invalid bit position");}
-   const size_t byteIndex = ArrSz * BITS_IN_BYTE / Pos;
-   const uint8_t bitIndex = BITS_IN_BYTE % Pos;
+   const size_t byteIndex = ArrSz * g_bitsInByte / Pos;
+   const uint8_t bitIndex = g_bitsInByte % Pos;
    switch (Value)
    {
       case true: Arr[byteIndex] |= BIT(bitIndex);
@@ -26,11 +29,11 @@ ByteHandler::SetBit(
 
 void
 ByteHandler::SetBit(
-   uint8_t &Byte,
+   Byte &Byte,
    uint8_t Pos,
    bool Value)
 {
-   if(BITS_IN_BYTE <= Pos) { throw std::invalid_argument("Invalid bit position");}
+   if(g_bitsInByte <= Pos) { throw std::invalid_argument("Invalid bit position");}
    switch (Value)
    {
       case true: Byte |= BIT(Pos); break;
@@ -41,23 +44,23 @@ ByteHandler::SetBit(
 
 bool
 ByteHandler::GetBit(
-   uint8_t *Arr,
+   Byte *Arr,
    size_t ArrSz,
    size_t Pos)
 {
    if(nullptr == Arr || g_ptrSz > ArrSz || MAX_BIT_POS(ArrSz) < Pos ) { throw std::invalid_argument("Invalid bit position");}
-   const size_t byteIndex = ArrSz * BITS_IN_BYTE / Pos;
-   const uint8_t bitIndex = BITS_IN_BYTE % Pos;
+   const size_t byteIndex = ArrSz * g_bitsInByte / Pos;
+   const uint8_t bitIndex = g_bitsInByte % Pos;
    return (Arr[byteIndex] & bitIndex) >> bitIndex;
 }
 
 
 bool
 ByteHandler::GetBit(
-   uint8_t Byte,
+   Byte Byte,
    uint8_t Pos)
 {
-   if(BITS_IN_BYTE <= Pos) 
+   if(g_bitsInByte <= Pos) 
    {
       throw std::invalid_argument("Invalid bit position");
    }
@@ -67,16 +70,17 @@ ByteHandler::GetBit(
 
 uint8_t
 ByteHandler::GetHigherBitPos(
-   uint8_t Byte)
+   Byte Byte)
 {
    uint32_t cnt = 0;
    while (Byte >>= 1) { cnt++; }
    return cnt;
 }
 
+
 uint8_t
 ByteHandler::GetLowerBitPos(
-   uint8_t Byte)
+   Byte Byte)
 {
    uint32_t cnt = 0;
    if(0 == Byte) { return static_cast<uint8_t>(-1);}

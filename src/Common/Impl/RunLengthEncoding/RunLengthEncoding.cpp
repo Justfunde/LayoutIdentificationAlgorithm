@@ -2,7 +2,7 @@
 #include "Include/RunLengthEncoding.h"
 
 constexpr uint8_t g_maxRleCounterValue = 0b01111111;
-constexpr uint8_t g_lastBitPos = BITS_IN_BYTE - 1;
+constexpr uint8_t g_lastBitPos = g_bitsInByte - 1;
 
  
 double 

@@ -3,7 +3,6 @@
 
 #include <string_view>
 
-
 #include "Vector2D.h"
 
 
@@ -15,28 +14,77 @@ protected:
 	size_t                       Jsize, Isize;
 	
 public:
+
 	BitMatrix() : Jsize(0), Isize(0) { }
 
-	BitMatrix(size_t RowCnt, size_t ColCnt);
 
-	BitMatrix(const BitMatrix& Rhs);
+	BitMatrix(
+		size_t RowCnt,
+	 	size_t ColCnt);
 
-	BitMatrix(BitMatrix&& Rhs) noexcept;
+
+	BitMatrix(
+		const BitMatrix& Rhs);
+
+
+	BitMatrix(
+		BitMatrix&& Rhs) noexcept;
+
 
 	virtual ~BitMatrix();
 
 
-	bool             Get(size_t i, size_t j) const;
-	bool             IsAllocated() const;
-	uint32_t         GetIsize() const;
-	uint32_t         GetJsize() const;
-	std::string      ToString() const;
+	bool
+	Get(
+		size_t i,
+		size_t j) const;
 
-	static BitMatrix FromString(std::string_view Str, uint32_t RowCnt, uint32_t ColCnt);
 
-	void             Set(size_t i, size_t j, bool Value);
-	void 				  SetByte(size_t iBytePos, size_t jBytePos, char Value);
-	void             SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd, bool Value);
+	bool
+	IsAllocated() const;
+
+
+	uint32_t
+	GetIsize() const;
+
+
+	uint32_t
+	GetJsize() const;
+
+
+	std::string
+	ToString() const;
+
+
+	static
+	BitMatrix
+	FromString(
+		std::string_view Str,
+		uint32_t RowCnt,
+		uint32_t ColCnt);
+
+
+	void
+	Set(
+		size_t i,
+		size_t j,
+		bool Value);
+
+
+	void
+	SetByte(
+		size_t iBytePos,
+		size_t jBytePos,
+		char Value);
+
+
+	void
+	SetRange(
+		size_t iStart,
+		size_t jStart,
+		size_t iEnd,
+		size_t jEnd,
+		bool Value);
 
 
 	void             Ones();
