@@ -1,52 +1,55 @@
 ﻿/**
 * @file     Base64.c
-* @brief    Определение функций для работы с Base64
+* @brief    Function definition for base64 algh job
 */
+
+#include "Include/Crc32.h"
+#include "Include/Base64.h"
 
 #include <algorithm>
 #include <stdexcept>
 
 
-#include "Include/Crc32.h"
-#include "Include/Base64.h"
-
-static const char* g_Base64ClassicDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+constexpr std::string_view g_Base64ClassicDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                                  "abcdefghijklmnopqrstuvwxyz"
                                                  "0123456789"
-                                                 "+/" };///<Стандартный словарь
+                                                 "+/" }; ///<Standard dictionary
 
-static const char* g_Base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+constexpr std::string_view g_Base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                               "abcdefghijklmnopqrstuvwxyz"
                                               "0123456789"
-                                              "-_" }; ///<Словарь для URL сообщений
+                                              "-_" }; ///<Dictionary for URL messages
 
 
-constexpr size_t g_radixHashLen = 8;
-constexpr size_t g_pemStrLen = 64;
+constexpr size_t g_radixHashLen = 8; //< radix Base64 hash length
+
+constexpr size_t g_pemStrLen = 64; 
+
 constexpr size_t g_mimeStrLen = 76;
+
 constexpr std::string_view g_endlineStr = "\r\n";
 
 
-#define CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen) ( ( ( (Buf2EncodeLen) * 4 / 3 + 3) < g_pemStrLen) ? ((Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + g_radixHashLen) : ( (Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + ((Buf2EncodeLen) * 4 / 3 + 2) / g_pemStrLen * 3))
+#define CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen) ( ( ( (Buf2EncodeLen) * 4 / 3 + 3) < g_pemStrLen) ? \
+                   ((Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + g_radixHashLen) : ( (Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + ((Buf2EncodeLen) * 4 / 3 + 2) / g_pemStrLen * 3))
 
 
 /**
-* @brief       Получение позиции символа в Base64
-* @param[in]   Symb    Символ
-* @retval      Позиция символа в закодированной Base64 последовательности
+* @brief       Get base64 symbol position
+* @param[in]   Symb    Symbol code
 **/
 static
 char
 InGetSymbPosition(
    char Symb)
 {
-   //См схему соответствия "Символ - значение" в Base64
-   if (Symb >= 'A' && Symb <= 'Z') return Symb - 'A';
-   else if (Symb >= 'a' && Symb <= 'z') return Symb - 'a' + ('Z' - 'A') + 1;
-   else if (Symb >= '0' && Symb <= '9') return Symb - '0' + ('Z' - 'A') + ('z' - 'a') + 2;
-   else if (Symb == '+' || Symb == '-') return 62;
-   else if (Symb == '/' || Symb == '_') return 63;
-   else return -1;
+   if (Symb >= 'A' && Symb <= 'Z') { return Symb - 'A'; }
+   else if (Symb >= 'a' && Symb <= 'z') { return Symb - 'a' + ('Z' - 'A') + 1; }
+   else if (Symb >= '0' && Symb <= '9') { return Symb - '0' + ('Z' - 'A') + ('z' - 'a') + 2; }
+   else if (Symb == '+' || Symb == '-') { return 62; }
+   else if (Symb == '/' || Symb == '_') { return 63; }
+   
+   throw std::runtime_error("Invalid char pos");
 }
 
 static
@@ -60,8 +63,8 @@ InBase64Encode(
     std::string encodedStr;
     encodedStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
 
-    char trailingChar = (IsUrl) ? '.' : '=';
-    const char* dictionary = (IsUrl) ? g_Base64UrlDictionary : g_Base64ClassicDictionary;
+    const char trailingChar = (IsUrl) ? '.' : '=';
+    const std::string_view dictionary = (IsUrl) ? g_Base64UrlDictionary : g_Base64ClassicDictionary;
 
     for (size_t i = 0, Buf2EncodeLen = Buf2Encode.length(); i < Buf2EncodeLen; i += 3)
     {
