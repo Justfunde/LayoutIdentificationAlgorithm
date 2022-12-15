@@ -1,15 +1,18 @@
+#include "Include/BitMatrix.h"
+
 #include <iostream>
 #include <random>
 #include <ctime>
 
-#include "Include/BitMatrix.h"
-
+#define BIT(n)         (1U << (n))
 
 constexpr uint8_t g_BitsInByte = 8;
 
-BitMatrix::BitMatrix(const BitMatrix& Rhs)
+BitMatrix::BitMatrix(
+	const BitMatrix& Rhs)
 {
-	try {
+	try 
+	{
 		Bitmap = Rhs.Bitmap;
 		Isize = Rhs.Isize;
 		Jsize = Rhs.Jsize;
@@ -22,7 +25,11 @@ BitMatrix::BitMatrix(const BitMatrix& Rhs)
 }
 
 
-BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
+BitMatrix::BitMatrix(
+	size_t RowCnt,
+	size_t ColCnt)
+	: Isize(RowCnt)
+	, Jsize(ColCnt)
 {
 	try{
 		
@@ -38,14 +45,14 @@ BitMatrix::BitMatrix(size_t RowCnt, size_t ColCnt): Isize(RowCnt),Jsize(ColCnt)
 }
 
 
-
-
-BitMatrix::BitMatrix(BitMatrix&& Rhs) noexcept
+BitMatrix::BitMatrix(
+	BitMatrix&& Rhs) noexcept
 {
 	Isize = Rhs.Isize;
 	Jsize = Rhs.Jsize;
 	Bitmap = std::move(Rhs.Bitmap);
 }
+
 
 BitMatrix::~BitMatrix()
 {
@@ -54,7 +61,9 @@ BitMatrix::~BitMatrix()
 
 
 //overloaded operators
-BitMatrix& BitMatrix::operator=(const BitMatrix& Rhs)
+BitMatrix&
+	BitMatrix::operator=(
+		const BitMatrix& Rhs)
 {
 	if (&Rhs == this)
 		return *this;
@@ -65,16 +74,22 @@ BitMatrix& BitMatrix::operator=(const BitMatrix& Rhs)
 	return *this;
 }
 
-BitMatrix& BitMatrix::operator=(BitMatrix&& Rhs) noexcept
+
+BitMatrix&
+ 	BitMatrix::operator=(
+		BitMatrix&& Rhs) noexcept
 {
-	Reset();
 	Bitmap = std::move(Rhs.Bitmap);
 	Isize = Rhs.Isize;
 	Jsize = Rhs.Jsize;
 	return *this;
 }
 
-BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
+
+BitMatrix
+operator^(
+	const BitMatrix& FirstMatr,
+	const BitMatrix& SecondMatr)
 {
 	if (FirstMatr.Jsize != SecondMatr.Jsize || FirstMatr.Isize != SecondMatr.Isize) { throw std::invalid_argument("Objects have uncomparable sizes!");}
 
@@ -91,58 +106,77 @@ BitMatrix operator^(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr)
 	return result;
 }
 
-bool operator==(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept
+
+bool
+operator==(
+	const BitMatrix& FirstMatr,
+	const BitMatrix& SecondMatr) noexcept
 {
 	return BitMatrix::Compare(FirstMatr, SecondMatr) >= 0.9999;
 }
 
-bool operator!=(const BitMatrix& FirstMatr, const BitMatrix& SecondMatr) noexcept
+
+bool
+operator!=(
+	const BitMatrix& FirstMatr,
+	const BitMatrix& SecondMatr) noexcept
 {
 	return BitMatrix::Compare(FirstMatr, SecondMatr) <= 0.9999;
 }
 
-bool BitMatrix::operator!() noexcept
+
+bool
+BitMatrix::operator!() noexcept
 {
 	if (!Bitmap) { return true;}
-	if (Isize == 0 || Jsize == 0) { return true;}
+	if (0 == Isize || 0 ==  Jsize) { return true;}
 	return false;
 }
 
-//Getters
 
-bool BitMatrix::Get(size_t i, size_t j) const 
+bool
+BitMatrix::Get(
+	size_t i,
+	size_t j) const 
 {
 	if (i >= Isize || j >= Jsize) {throw std::runtime_error("Invalid index"); }
-	//finding byte pos in arr
+
+	// finding byte pos in arr
 	const size_t iBytePos = i;
 	const size_t jBytePos = j / g_BitsInByte;
 	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
 	return static_cast<bool>((Bitmap[iBytePos][jBytePos] & BIT(jAdditBitPos)) >> jAdditBitPos);
 }
 
-bool BitMatrix::UnsafeGet(size_t i, size_t j) const
+
+bool
+BitMatrix::UnsafeGet(
+	size_t i,
+	size_t j) const
 {
 	return static_cast<bool>((Bitmap[i][j / g_BitsInByte] & BIT(g_BitsInByte - 1 - j % g_BitsInByte)) >> (g_BitsInByte - 1 - j % g_BitsInByte));
 }
 
-bool BitMatrix::IsAllocated() const 
-{ 
-	return true; 
-}
 
-uint32_t BitMatrix::GetIsize() const
+size_t
+BitMatrix::GetRowCount() const
 {
 	return Isize;
 }
 
-uint32_t BitMatrix::GetJsize() const
+size_t
+BitMatrix::GetColumnCount() const
 {
 	return Jsize;
 }
 
 //Setters
 
-void BitMatrix::Set(size_t i, size_t j, bool Value)
+void
+BitMatrix::Set(
+	size_t i,
+	size_t j,
+	bool Value)
 {
 	if (i >= Isize || j >= Jsize) {throw std::runtime_error("Invalid index"); }
 	
@@ -151,18 +185,22 @@ void BitMatrix::Set(size_t i, size_t j, bool Value)
 	const size_t jBytePos = j / g_BitsInByte;
 	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
 
-	switch (Value)
+	if(Value)
 	{
-	case true:
 		Bitmap[iBytePos][jBytePos] |= BIT(jAdditBitPos);
-		break;
-	case false:
+	}
+	else
+	{
 		Bitmap[iBytePos][jBytePos] &= ~BIT(jAdditBitPos);
-		break;
 	}
 }
 
-void BitMatrix::SetByte(size_t iBytePos, size_t jBytePos, char Value)
+
+void
+BitMatrix::SetByte(
+	size_t iBytePos,
+	size_t jBytePos,
+	Byte Value)
 {
 	if(iBytePos >= Bitmap.RowCount() || jBytePos > Bitmap.ColCnt()) { throw std::invalid_argument("Invalid index");}
 
@@ -170,34 +208,47 @@ void BitMatrix::SetByte(size_t iBytePos, size_t jBytePos, char Value)
 }
 
 
-void BitMatrix::UnsafeSet(size_t i, size_t j, bool Value)
+void
+BitMatrix::UnsafeSet(
+	size_t i,
+	size_t j,
+	bool Value)
 {
-	switch (Value)
+	if(Value)
 	{
-	case true:
 		Bitmap[i][j / g_BitsInByte] |= BIT(g_BitsInByte - 1 - j % g_BitsInByte);
-		break;
-	case false:
+	}
+	else
+	{
 		Bitmap[i][j / g_BitsInByte] &= ~BIT(g_BitsInByte - 1 - j % g_BitsInByte);
-		break;
 	}
 }
 
 
-void  BitMatrix::unsafeSetByte(size_t i, size_t j, bool value)
+void
+BitMatrix::UnsafeSetByte(
+	size_t i,
+	size_t j,
+	bool value)
 {
-	switch (value)
+	if(value)
 	{
-	case true:
 		Bitmap[i][j] = 0xFF;
-		break;
-	case false:
+	}
+	else
+	{
 		Bitmap[i][j] = 0;
 	}
 }
 
 
-void BitMatrix::SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd, bool Value)
+void
+BitMatrix::SetRange(
+	size_t iStart,
+	size_t jStart,
+	size_t iEnd,
+	size_t jEnd,
+	bool Value)
 {
 	if (iStart > iEnd || iEnd > Isize) throw std::runtime_error("Invalid i one of parameter");
 	if (jStart > jEnd || jEnd > Jsize) throw std::runtime_error("Invalid j one ofparameter");
@@ -212,7 +263,8 @@ void BitMatrix::SetRange(size_t iStart, size_t jStart, size_t iEnd, size_t jEnd,
 }
 
 
-void BitMatrix::Print() const noexcept
+void
+BitMatrix::Print() const noexcept
 {
 	for (size_t i = 0; i < Isize; i++)
 	{
@@ -224,7 +276,10 @@ void BitMatrix::Print() const noexcept
 	}
 }
 
-double BitMatrix::CalcRatio(bool Value) const noexcept
+
+double
+BitMatrix::CalcRatio(
+	bool Value) const noexcept
 {
 	double unit = 0;
 	try {
@@ -234,7 +289,9 @@ double BitMatrix::CalcRatio(bool Value) const noexcept
 			for (size_t j = 0; j < Jsize; j++)
 			{
 				if (UnsafeGet(i, j) == Value)
+				{
 					unit++;
+				}
 			}
 		}
 	}
@@ -243,30 +300,36 @@ double BitMatrix::CalcRatio(bool Value) const noexcept
 		std::cerr << "\nUnitRatio error:" << exception.what();
 		return -1;
 	}
-
 	return unit / static_cast<double>(Isize * Jsize);
 }
 
-double BitMatrix::OneRatio() const noexcept
+double
+BitMatrix::OneRatio() const noexcept
 {
 	return CalcRatio(1);
 }
 
 
-double  BitMatrix::zeroRatio() const noexcept 
+double  BitMatrix::ZeroRatio() const noexcept 
 {
 	return CalcRatio(0);
 }
 
 
-inline double BitMatrix::Compare(const BitMatrix& FirstMatrix, const BitMatrix& SecondMatrix)
+inline
+double
+BitMatrix::Compare(
+	const BitMatrix& FirstMatrix,
+	const BitMatrix& SecondMatrix)
 {
 	double res = 0;
 	try
 	{
 		res = (FirstMatrix ^ SecondMatrix).OneRatio();
 		if (res == -1)
+		{
 			return res;
+		}
 		return 1 - res;
 	}
 	catch (std::exception& exception)
@@ -277,19 +340,27 @@ inline double BitMatrix::Compare(const BitMatrix& FirstMatrix, const BitMatrix& 
 }
 
 
-void BitMatrix::Ones()
+void
+BitMatrix::Ones()
 {
 	SetRange(0, 0, Isize - 1, Jsize - 1, 1);
 }
 
-void BitMatrix::Zeros()
+
+void
+BitMatrix::Zeros()
 {
 	for (size_t i = 0; i < Bitmap.RowCount(); i++)
+	{
 		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
+		{
 			Bitmap[i][j] = 0;
+		}
+	}
 }
 
-void BitMatrix::Randm()
+void
+BitMatrix::Randm()
 {
 	std::mt19937 engine; 
 	engine.seed(std::time(nullptr));
@@ -304,7 +375,10 @@ void BitMatrix::Randm()
 
 }
 
-void BitMatrix::Resize(size_t RowCnt, size_t ColCnt)
+void 
+BitMatrix::Resize(
+	size_t RowCnt,
+	size_t ColCnt)
 {
 	if (RowCnt <= 0 || ColCnt <= 0) throw std::runtime_error("Matrix resize parameters error!");
 	
@@ -316,7 +390,8 @@ void BitMatrix::Resize(size_t RowCnt, size_t ColCnt)
 }
 
 
-std::string BitMatrix::ToString() const 
+std::string
+BitMatrix::Serialize() const 
 {
 	if (Isize == 0 || Jsize == 0) { return std::string(); }
 
@@ -333,10 +408,7 @@ std::string BitMatrix::ToString() const
 }
 
 
-
 //utility methods
-
-
 
 void BitMatrix::Reset()
 {

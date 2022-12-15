@@ -26,7 +26,7 @@ public:
 };
 
 
-class LayoutMatrix:public BitMatrix
+class LayoutMatrix : public BitMatrix
 {
 public:
 	//Constructors

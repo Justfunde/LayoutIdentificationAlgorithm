@@ -110,7 +110,7 @@ double
 	const LayoutMatrix &Matrix)
 {
 	if(!Matrix) { return 0;}
-	return static_cast<double>(Matrix.ToString().length()) / static_cast<double>(Encode(Matrix).length());
+	return static_cast<double>(Matrix.Serialize().length()) / static_cast<double>(Encode(Matrix).length());
 }
 
 
@@ -121,14 +121,14 @@ std::string
 	if(!Matrix) { return "";}
 
 	std::string encoded;
-	encoded.reserve(Matrix.GetIsize() * Matrix.GetIsize());
+	encoded.reserve(Matrix.GetRowCount() * Matrix.GetRowCount());
 
 	bool curr_value = Matrix.Get(0, 0);
 	uint8_t key = 0;
 
-	for (size_t i = 0; i < Matrix.GetIsize(); i++)
+	for (size_t i = 0; i < Matrix.GetRowCount(); i++)
 	{
-		for (size_t j = 0; j < Matrix.GetJsize(); j++)
+		for (size_t j = 0; j < Matrix.GetColumnCount(); j++)
 		{
 			if (curr_value == Matrix.Get(i, j))
 			{
@@ -180,7 +180,7 @@ Rle::DecodeMatrix(
 		{
 			matrix.Set(k, j, value);
 			j++;
-			if (j == matrix.GetJsize())
+			if (j == matrix.GetColumnCount())
 			{
 				k++;
 				j = 0;

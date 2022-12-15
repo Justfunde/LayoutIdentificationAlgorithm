@@ -109,8 +109,8 @@ LayoutMatrix LayoutBitmapGenerator::getMatrix() const
 
 void LayoutBitmapGenerator::FirstMatrixInit()
 {
-	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetIsize());
-	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetJsize());
+	dx = СalcDelta(bitmapCoords.leftTop.x, bitmapCoords.rightBot.x,bitmap->GetRowCount());
+	dy = СalcDelta(bitmapCoords.leftTop.y, bitmapCoords.rightBot.y, bitmap->GetColumnCount());
 	
 
 	for (auto it : geometryList)
@@ -233,8 +233,8 @@ void
 LayoutBitmapGenerator::InitFragmentsIndicies()
 {
 	//std::cout << "\nInit fragment indicies\n";
-	const size_t i_add = bitmap->GetIsize() / fragmentsSz;
-	const size_t j_add = bitmap->GetJsize() / fragmentsSz;
+	const size_t i_add = bitmap->GetRowCount() / fragmentsSz;
+	const size_t j_add = bitmap->GetColumnCount() / fragmentsSz;
 	//std::cout << "i_add = " << i_add << "\nj_add = " << j_add << std::endl;
 	for (size_t i = 0; i < fragmentsSz; i++)
 		for (size_t j = 0; j < fragmentsSz; j++)

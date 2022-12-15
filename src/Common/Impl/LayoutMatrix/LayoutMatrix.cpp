@@ -252,14 +252,14 @@ LayoutMatrix::EncodeHash(
 	//if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { 
 	resultStr = Rle::Encode(Matrix); 
 	isRle = true;//}
-	//else { resultStr = Matrix.ToString();}
+	//else { resultStr = Matrix.Serialize();}
 
 
 	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::standard);
 
 	resultStr += MatrixEncodingParamters::sectionParameters;
 	resultStr += MatrixEncodingParamters::sectionSize;
-	resultStr += LayoutMatrix::EncodeSz(Matrix.GetIsize(), Matrix.GetJsize());
+	resultStr += LayoutMatrix::EncodeSz(Matrix.GetRowCount(), Matrix.GetColumnCount());
 	resultStr += MatrixEncodingParamters::sectionEncodeType;
 	resultStr += LayoutMatrix::EncodeEncodings(isRle,true);
 

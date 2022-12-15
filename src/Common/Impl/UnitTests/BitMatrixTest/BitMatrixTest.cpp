@@ -25,9 +25,9 @@ Test__BitMatrixFuzzing()
    {
       LayoutMatrix matrix(InRandMatrixSz(),InRandMatrixSz());
 
-      for(uint32_t i = 0; i < matrix.GetIsize(); i++)
+      for(uint32_t i = 0; i < matrix.GetRowCount(); i++)
       {
-         for(uint32_t j = 0; j < matrix.GetJsize(); j++)
+         for(uint32_t j = 0; j < matrix.GetColumnCount(); j++)
          {
             TEST_ASSERT(matrix.Get(i, j), 0, !=);
             matrix.Set(i, j, 1);
@@ -35,9 +35,9 @@ Test__BitMatrixFuzzing()
          }
       }
       matrix.Zeros();
-      double zeroRatio = matrix.zeroRatio();
+      double ZeroRatio = matrix.ZeroRatio();
       double onesRatio = matrix.OneRatio();
-      if(zeroRatio > 1.001 || zeroRatio < 0.999)
+      if(ZeroRatio > 1.001 || ZeroRatio < 0.999)
       {
          ASSERT();
       }
@@ -47,30 +47,30 @@ Test__BitMatrixFuzzing()
          ASSERT();
       }
 
-      for(uint32_t i = 0; i < matrix.GetIsize(); i++)
+      for(uint32_t i = 0; i < matrix.GetRowCount(); i++)
       {
-         for(uint32_t j = 0; j < matrix.GetJsize(); j++)
+         for(uint32_t j = 0; j < matrix.GetColumnCount(); j++)
          {
             TEST_ASSERT(matrix.Get(i, j), 0, !=);
          }
       }
 
       matrix.Ones();
-      zeroRatio = matrix.zeroRatio();
+      ZeroRatio = matrix.ZeroRatio();
       onesRatio = matrix.OneRatio();
       if(onesRatio > 1.001 || onesRatio < 0.999)
       {
          ASSERT();
       }
 
-      if(zeroRatio > 0.001 || zeroRatio < -0.001)
+      if(ZeroRatio > 0.001 || ZeroRatio < -0.001)
       {
          ASSERT();
       }
 
-      for(uint32_t i = 0; i < matrix.GetIsize(); i++)
+      for(uint32_t i = 0; i < matrix.GetRowCount(); i++)
       {
-         for(uint32_t j = 0; j < matrix.GetJsize(); j++)
+         for(uint32_t j = 0; j < matrix.GetColumnCount(); j++)
          {
             TEST_ASSERT(matrix.Get(i, j), 1, !=);
          }
