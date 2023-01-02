@@ -252,7 +252,7 @@ LayoutMatrix::EncodeHash(
 	//if(Rle::CalcCompressionCoeffitient(Matrix) > 1) { 
 	resultStr = Rle::Encode(Matrix); 
 	isRle = true;//}
-	//else { resultStr = Matrix.Serialize();}
+	//else { resultStr = Matrix.SerializeMatrix();}
 
 
 	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::standard);

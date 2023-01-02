@@ -1,6 +1,7 @@
 ﻿#include "Include/ByteHandler.h"
 
 #include <stdexcept>
+#include <limits>
 
 
 #define MAX_BIT_POS(ArrSz) (g_bitsInByte * (ArrSz) - 1)
@@ -87,4 +88,17 @@ ByteHandler::GetLowerBitPos(
 
    while (!(Byte & BIT(0))  ) { Byte >>= 1; cnt++; }
    return cnt;
+}
+
+
+uint8_t
+ByteHandler::CalcRealByteCnt(
+   size_t Num)
+{
+   if(std::numeric_limits<uint8_t>().max() >= Num) { return 1;} //if only one byte
+
+   uint8_t higherBitPos = 0;
+   while (Num >>= 1) { higherBitPos++; }
+
+   return higherBitPos / 8 + 1;
 }

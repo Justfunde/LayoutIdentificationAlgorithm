@@ -99,6 +99,25 @@ public:
 	size_t
 	GetColumnCount() const;
 
+	//____________BEGIN Matrix serialization and deserialization methods____________
+
+	/**
+	 * @brief Matrix serialization. Includes sizes
+	 * 
+	 * @return std::string 
+	 */
+	std::string
+	SerializeAll() const;
+
+
+	/**
+	 * @brief Sizes serialization
+	 * 
+	 * @return std::string 
+	 */
+	std::string
+	SerializeSizes() const;
+
 
 	/**
 	 * @brief Conversion bitmatrix to string(just concantecating bytes)
@@ -106,7 +125,7 @@ public:
 	 * @return std::string 
 	 */
 	std::string
-	Serialize() const;
+	SerializeMatrix() const;
 
 
 	/**
@@ -124,6 +143,7 @@ public:
 		uint32_t RowCnt,
 		uint32_t ColCnt);
 
+	//____________END atrix serialization and deserialization methods____________
 
 	/**
 	 * @brief Bit setter bit at pos [i][j]
@@ -176,7 +196,7 @@ public:
 	 * 
 	 */
 	void 
-		Ones();
+	Ones();
 
 
 	/**
@@ -184,7 +204,7 @@ public:
 	 * 
 	 */
 	void
-		Zeros();
+	Zeros();
 
 
 	/**
@@ -192,7 +212,7 @@ public:
 	 * 
 	 */
 	void
-		Randm();
+	Randm();
 
 	/**
 	 * @brief Resize matrix
@@ -201,7 +221,7 @@ public:
 	 * @param ColCnt New column count
 	 */
 	void
-		Resize(size_t RowCnt, size_t ColCnt);
+	Resize(size_t RowCnt, size_t ColCnt);
 
 
 	/**
@@ -209,7 +229,7 @@ public:
 	 * 
 	 */
 	void
-		Print() const noexcept;
+	Print() const noexcept;
 
 
 	/**
@@ -218,7 +238,7 @@ public:
 	 * @return double 
 	 */
 	double
-		OneRatio() const noexcept;
+	OneRatio() const noexcept;
 
 
 	/**
@@ -227,7 +247,7 @@ public:
 	 * @return double 
 	 */
 	double
-		ZeroRatio() const noexcept;
+	ZeroRatio() const noexcept;
 	
 
 	/**
@@ -237,7 +257,7 @@ public:
 	 * @return BitMatrix& 
 	 */
    	BitMatrix&
-		operator=(const BitMatrix& Rhs);
+	operator=(const BitMatrix& Rhs);
 
 	
 	/**
@@ -247,7 +267,7 @@ public:
 	 * @return BitMatrix& 
 	 */
 	BitMatrix&
-		operator=(BitMatrix&& Rhs) noexcept;
+	operator=(BitMatrix&& Rhs) noexcept;
 
 
 	/**
@@ -257,7 +277,7 @@ public:
 	 * @return false BitMatrix is invalid
 	 */
 	bool
-		operator!() noexcept;
+	operator!() const noexcept;
 
 	/**
 	 * @brief Static method for matrix comparison
@@ -283,8 +303,8 @@ protected:
 	 * @return double 
 	 */
 	double
-		CalcRatio(
-			bool Value) const noexcept;
+	CalcRatio(
+		bool Value) const noexcept;
 
 
 	/**
@@ -296,7 +316,7 @@ protected:
 	 */
 	inline
 	void
-		UnsafeSetByte(
+	UnsafeSetByte(
 		size_t i,
 		size_t j,
 		bool value);
@@ -312,7 +332,7 @@ protected:
 	 */
 	inline
 	bool
-		UnsafeGet(
+	UnsafeGet(
 		size_t i,
 		size_t j) const;
 
@@ -326,7 +346,7 @@ protected:
 	 */
 	inline
 	void
-		UnsafeSet(
+	UnsafeSet(
 		size_t i,
 		size_t j,
 		bool Value);
@@ -337,7 +357,7 @@ protected:
 	 * 
 	 */
 	void 
-		Reset();
+	Reset();
 
 public:
 
@@ -350,9 +370,9 @@ public:
 	 */
 	friend
 	BitMatrix 
-		operator^(
-			const BitMatrix& FirstMatr,
-			const BitMatrix& SecondMatr);
+	operator^(
+		const BitMatrix& FirstMatr,
+		const BitMatrix& SecondMatr);
 
 
 	/**
@@ -365,7 +385,7 @@ public:
 	 */
 	friend
 	bool
-		operator==(
+	operator==(
 		const BitMatrix& FirstMatr,
 		const BitMatrix& SecondMatr) noexcept;
 
@@ -380,7 +400,7 @@ public:
 	 */
 	friend
 	bool
-		operator!=(
+	operator!=(
 		const BitMatrix& FirstMatr,
 		const BitMatrix& SecondMatr) noexcept;
 

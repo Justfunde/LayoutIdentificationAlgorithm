@@ -126,7 +126,7 @@ operator!=(
 
 
 bool
-BitMatrix::operator!() noexcept
+BitMatrix::operator!() const noexcept
 {
 	if (!Bitmap) { return true;}
 	if (0 == Isize || 0 ==  Jsize) { return true;}
@@ -391,12 +391,62 @@ BitMatrix::Resize(
 
 
 std::string
-BitMatrix::Serialize() const 
+BitMatrix::SerializeAll() const
 {
-	if (Isize == 0 || Jsize == 0) { return std::string(); }
+	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
 
-	std::string str;
-	str.reserve(Bitmap.RowCount() * Bitmap.ColCnt());
+	return SerializeSizes() + SerializeMatrix();
+}
+
+
+std::string
+BitMatrix::SerializeSizes() const
+{
+	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
+
+	char resultBuf[2 * sizeof(size_t) + sizeof(uint8_t)];// max buf size. rowCnt + colCnt + byte count of row(4 high bits) + ByteCount of column(4 low bits)
+	uint8_t resBufSz = 1;
+	constexpr uint8_t sizesPos = 0;
+
+
+	size_t rowCnt = Bitmap.RowCount();
+	size_t colCnt = Bitmap.ColCnt();
+	
+	const uint8_t rowByteCnt = ByteHandler::CalcRealByteCnt(rowCnt);
+	const uint8_t colByteCnt = ByteHandler::CalcRealByteCnt(colCnt);
+
+	//row and col byte count insert
+	resultBuf[sizesPos] |= (rowByteCnt << 4);
+	resultBuf[sizesPos] |= (colByteCnt & 0x0F); 
+
+	//row serialization
+	const uint8_t* pBuf = reinterpret_cast<uint8_t*>(&rowCnt);
+	for(uint8_t i = 0; i < rowByteCnt; i++)
+	{
+		resultBuf[resBufSz++] = pBuf[i];
+	}
+
+	//column serialization
+	pBuf = reinterpret_cast<uint8_t*>(&colCnt);
+	for(uint8_t i = 0; i < colByteCnt; i++)
+	{
+		resultBuf[resBufSz++] = pBuf[i];
+	}
+
+	//resultBuf[resBufSz] = '\0';
+
+	return std::string(resultBuf, resBufSz);
+
+}
+
+
+std::string
+BitMatrix::SerializeMatrix() const 
+{
+	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
+
+	std::string str(Bitmap.RowCount() * Bitmap.ColCnt(), 0);
+	
 	for (size_t i = 0; i < Bitmap.RowCount(); i++)
 	{
 		for (size_t j = 0; j < Bitmap.ColCnt(); j++)

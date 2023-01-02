@@ -98,6 +98,18 @@ namespace ByteHandler
    uint8_t
    GetLowerBitPos(
       Byte Byte);
+
+   /**
+    * @brief Real byte count calculation
+    * Example: 0000000011111111 --> 1 byte
+    *          1000000011111111 --> 2 byte
+    * 
+    * @param Num 
+    * @return uint8_t 
+    */
+   uint8_t
+   CalcRealByteCnt(
+      size_t Num);
 }
 
 #endif //!__BYTE_HANDLER_H__
