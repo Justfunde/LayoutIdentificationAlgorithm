@@ -9,29 +9,61 @@
 #include <algorithm>
 #include <stdexcept>
 
-
-constexpr std::string_view g_Base64ClassicDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                                 "abcdefghijklmnopqrstuvwxyz"
-                                                 "0123456789"
-                                                 "+/" }; ///<Standard dictionary
-
-constexpr std::string_view g_Base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                              "abcdefghijklmnopqrstuvwxyz"
-                                              "0123456789"
-                                              "-_" }; ///<Dictionary for URL messages
+namespace Base64Parameters
+{
+   constexpr
+   std::string_view
+   base64ClassicDictionary = {   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                 "abcdefghijklmnopqrstuvwxyz"
+                                 "0123456789"
+                                 "+/" }; ///<Standard dictionary
 
 
-constexpr size_t g_radixHashLen = 8; //< radix Base64 hash length
+   constexpr
+   std::string_view
+   base64UrlDictionary = { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "abcdefghijklmnopqrstuvwxyz"
+                           "0123456789"
+                           "-_" }; ///<Dictionary for URL messages
 
-constexpr size_t g_pemStrLen = 64; 
 
-constexpr size_t g_mimeStrLen = 76;
+   constexpr
+   size_t
+   radixHashLen = 8; //< radix Base64 hash length
 
-constexpr std::string_view g_endlineStr = "\r\n";
+
+   constexpr
+   size_t
+   pemStrLen = 64; 
 
 
-#define CALC_APPROX_ENCODED_STR_LEN(Buf2EncodeLen) ( ( ( (Buf2EncodeLen) * 4 / 3 + 3) < g_pemStrLen) ? \
-                   ((Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + g_radixHashLen) : ( (Buf2EncodeLen) * 4 / 3 + (g_pemStrLen / 2) + ((Buf2EncodeLen) * 4 / 3 + 2) / g_pemStrLen * 3))
+   constexpr
+   size_t
+   mimeStrLen = 76;
+
+
+   constexpr
+   std::string_view 
+   endlineStr = "\r\n";
+}
+
+/**
+ * @brief Calculation of approximated result buffer size
+ * 
+ * @param Buf2EncodeLength 
+ * @return size_t 
+ */
+static
+inline
+size_t
+InCalcApproxEncodedStrLength(
+   size_t Buf2EncodeLength)
+{
+   using namespace Base64Parameters;
+   return ( ( ( (Buf2EncodeLength) * 4 / 3 + 3) < pemStrLen) ? \
+                   ((Buf2EncodeLength) * 4 / 3 + (pemStrLen / 2) + radixHashLen) : ( (Buf2EncodeLength) * 4 / 3 + (pemStrLen / 2) + ((Buf2EncodeLength) * 4 / 3 + 2) / pemStrLen * 3));
+}
+
 
 
 /**
@@ -61,10 +93,10 @@ InBase64Encode(
     if (Buf2Encode.empty()) { throw std::invalid_argument("Invalid buffer to encode"); }
 
     std::string encodedStr;
-    encodedStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
+    encodedStr.reserve(InCalcApproxEncodedStrLength(Buf2Encode.length()));
 
     const char trailingChar = (IsUrl) ? '.' : '=';
-    const std::string_view dictionary = (IsUrl) ? g_Base64UrlDictionary : g_Base64ClassicDictionary;
+    const std::string_view dictionary = (IsUrl) ? Base64Parameters::base64UrlDictionary : Base64Parameters::base64ClassicDictionary;
 
     for (size_t i = 0, Buf2EncodeLen = Buf2Encode.length(); i < Buf2EncodeLen; i += 3)
     {
@@ -150,7 +182,7 @@ InBase64EncodeWithSeparator(
     std::string encodedStr =  InBase64Encode(Buf2Encode,false);
     std::string_view encodedStrView = encodedStr;
     std::string resStr;
-    resStr.reserve(CALC_APPROX_ENCODED_STR_LEN(Buf2Encode.length()));
+    resStr.reserve(InCalcApproxEncodedStrLength(Buf2Encode.length()));
 
    for (; encodedStrView.length() > EachStrLen;)
    {
@@ -169,7 +201,7 @@ std::string
 InBase64EncodePem(
   std::string_view Str2Encode)
 {
-    return InBase64EncodeWithSeparator(Str2Encode, g_endlineStr, g_pemStrLen);
+    return InBase64EncodeWithSeparator(Str2Encode, Base64Parameters::endlineStr, Base64Parameters::pemStrLen);
 }
 
 
@@ -178,7 +210,7 @@ std::string
 InBase64EncodeMime(
    std::string_view Str2Encode)
 {
-   return InBase64EncodeWithSeparator(Str2Encode, g_endlineStr, g_mimeStrLen);
+   return InBase64EncodeWithSeparator(Str2Encode, Base64Parameters::endlineStr, Base64Parameters::mimeStrLen);
 }
 
 
@@ -205,10 +237,10 @@ InRadix64Decode(
    const std::string &Str2Decode)
 {
    if(Str2Decode.empty()) { return "";}
-   if(Str2Decode.length() <= g_radixHashLen) { throw std::invalid_argument("Invalid Radix64 str length!");}
+   if(Str2Decode.length() <= Base64Parameters::radixHashLen) { throw std::invalid_argument("Invalid Radix64 str length!");}
 
-   const std::string crc32HashStr = Str2Decode.substr(Str2Decode.length() - g_radixHashLen);
-   const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - g_radixHashLen);
+   const std::string crc32HashStr = Str2Decode.substr(Str2Decode.length() - Base64Parameters::radixHashLen);
+   const std::string noHashStr = Str2Decode.substr(0,Str2Decode.length() - Base64Parameters::radixHashLen);
 
    Crc32Hash calcedHash = Crc32::CalcHash(noHashStr.c_str(),noHashStr.length());
    const std::string calcedHashStr = InBase64Encode(std::string_view(reinterpret_cast<char*>(&calcedHash),sizeof(calcedHash)), false);
