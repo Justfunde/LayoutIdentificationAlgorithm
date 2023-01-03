@@ -110,7 +110,7 @@ double
 	const LayoutMatrix &Matrix)
 {
 	if(!Matrix) { return 0;}
-	return static_cast<double>(Matrix.SerializeMatrix().length()) / static_cast<double>(Encode(Matrix).length());
+	return static_cast<double>(Matrix.Serialize().size()) / static_cast<double>(Encode(Matrix).length());
 }
 
 

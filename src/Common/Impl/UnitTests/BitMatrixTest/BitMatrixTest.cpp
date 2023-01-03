@@ -100,5 +100,30 @@ Test__BitMatrixEncodeFuzzing()
    END_TEST_JOB
 }
 
+int32_t
+Test__BitMatrixSerializationFuzzing()
+{
+   size_t cycleCnt = 100;
+   BEGIN_TEST_JOB
+
+   while(cycleCnt--)
+   {
+      uint32_t rows = 100;
+      uint32_t cols = 50;
+      BitMatrix matrix(rows,cols);
+
+      matrix.Randm();
+      matrix.Print();
+      
+      ByteVector vec =  matrix.Serialize();
+      TEST_ASSERT(vec.empty(), true, == );
+      std::cout << "\n\n\n"; 
+      BitMatrix resMatrix = BitMatrix::DeserializeMatrix(vec);
+      resMatrix.Print();
+      TEST_ASSERT(resMatrix, matrix, !=);
+   }
+   END_TEST_JOB
+}
+
 
 TEST_MAIN()

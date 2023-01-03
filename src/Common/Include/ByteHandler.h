@@ -11,10 +11,12 @@
 #define __BYTE_HANDLER_H__
 #include <stdint.h>
 #include <cstddef>
+#include <vector>
 
 constexpr uint8_t g_bitsInByte = 8U;///< bits in byte count
 
 using Byte = uint8_t;
+using ByteVector = std::vector<Byte>;
 
 /*! Namespace for bit working functions*/
 namespace ByteHandler
@@ -110,6 +112,8 @@ namespace ByteHandler
    uint8_t
    CalcRealByteCnt(
       size_t Num);
+
+   
 }
 
 #endif //!__BYTE_HANDLER_H__

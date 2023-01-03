@@ -60,8 +60,9 @@ InCalcApproxEncodedStrLength(
    size_t Buf2EncodeLength)
 {
    using namespace Base64Parameters;
-   return ( ( ( (Buf2EncodeLength) * 4 / 3 + 3) < pemStrLen) ? \
-                   ((Buf2EncodeLength) * 4 / 3 + (pemStrLen / 2) + radixHashLen) : ( (Buf2EncodeLength) * 4 / 3 + (pemStrLen / 2) + ((Buf2EncodeLength) * 4 / 3 + 2) / pemStrLen * 3));
+   return   (( Buf2EncodeLength * 4 / 3 + 3) < pemStrLen)  
+            ? (Buf2EncodeLength * 4 / 3 + pemStrLen / 2 + radixHashLen) 
+            :( Buf2EncodeLength * 4 / 3 + pemStrLen / 2 + Buf2EncodeLength * 4 / 3 + 2 / pemStrLen * 3);
 }
 
 

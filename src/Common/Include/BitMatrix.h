@@ -104,28 +104,16 @@ public:
 	/**
 	 * @brief Matrix serialization. Includes sizes
 	 * 
-	 * @return std::string 
+	 * @return ByteVector
 	 */
-	std::string
-	SerializeAll() const;
+	ByteVector
+	Serialize() const;
 
 
-	/**
-	 * @brief Sizes serialization
-	 * 
-	 * @return std::string 
-	 */
-	std::string
-	SerializeSizes() const;
-
-
-	/**
-	 * @brief Conversion bitmatrix to string(just concantecating bytes)
-	 * 
-	 * @return std::string 
-	 */
-	std::string
-	SerializeMatrix() const;
+	static
+	BitMatrix
+	DeserializeMatrix(
+		const ByteVector& MatrStr);
 
 
 	/**
@@ -358,6 +346,25 @@ protected:
 	 */
 	void 
 	Reset();
+
+	private:
+
+	/**
+	 * @brief Sizes serialization
+	 * 
+	 * @return ByteVector 
+	 */
+	ByteVector
+	SerializeSizes() const;
+
+
+	/**
+	 * @brief Conversion bitmatrix to string(just concantecating bytes)
+	 * 
+	 * @return ByteVector 
+	 */
+	ByteVector
+	SerializeMatrix() const;
 
 public:
 

@@ -33,7 +33,7 @@ BitMatrix::BitMatrix(
 {
 	try{
 		
-		const size_t colCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
+		const size_t colCnt = (Jsize % g_BitsInByte) ? (Jsize / g_BitsInByte + 1) : (Jsize / g_BitsInByte);
 
 		Bitmap.Resize(RowCnt, colCnt);
 	}
@@ -390,72 +390,130 @@ BitMatrix::Resize(
 }
 
 
-std::string
-BitMatrix::SerializeAll() const
+ByteVector
+BitMatrix::Serialize() const
 {
 	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
 
-	return SerializeSizes() + SerializeMatrix();
+	ByteVector resVector = SerializeSizes();
+	ByteVector matrVector = SerializeMatrix();
+
+	resVector.reserve(matrVector.size());
+	for(auto it : matrVector)
+	{
+		resVector.push_back(it);
+	}
+
+	return resVector;
 }
 
 
-std::string
+ByteVector
 BitMatrix::SerializeSizes() const
 {
 	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
 
-	char resultBuf[2 * sizeof(size_t) + sizeof(uint8_t)];// max buf size. rowCnt + colCnt + byte count of row(4 high bits) + ByteCount of column(4 low bits)
-	uint8_t resBufSz = 1;
-	constexpr uint8_t sizesPos = 0;
+	ByteVector resultBuf(sizeof(uint8_t) + sizeof(Isize) + sizeof(uint8_t) + sizeof(Jsize), 0);
+	ByteVector::iterator it = resultBuf.begin(); 
 
+	*it = sizeof(Isize);
+	++it;
 
-	size_t rowCnt = Bitmap.RowCount();
-	size_t colCnt = Bitmap.ColCnt();
-	
-	const uint8_t rowByteCnt = ByteHandler::CalcRealByteCnt(rowCnt);
-	const uint8_t colByteCnt = ByteHandler::CalcRealByteCnt(colCnt);
-
-	//row and col byte count insert
-	resultBuf[sizesPos] |= (rowByteCnt << 4);
-	resultBuf[sizesPos] |= (colByteCnt & 0x0F); 
-
-	//row serialization
-	const uint8_t* pBuf = reinterpret_cast<uint8_t*>(&rowCnt);
-	for(uint8_t i = 0; i < rowByteCnt; i++)
+	const uint8_t* pBuf = reinterpret_cast<const uint8_t*>(&Isize);
+	for(uint8_t i = 0; i < sizeof(Isize); i++)
 	{
-		resultBuf[resBufSz++] = pBuf[i];
+		*(it++) = pBuf[i]; 
 	}
 
-	//column serialization
-	pBuf = reinterpret_cast<uint8_t*>(&colCnt);
-	for(uint8_t i = 0; i < colByteCnt; i++)
+	*it = sizeof(Jsize);
+	++it;
+	pBuf = reinterpret_cast<const uint8_t*>(&Jsize);
+	for(uint8_t i = 0; i < sizeof(Jsize); i++)
 	{
-		resultBuf[resBufSz++] = pBuf[i];
+		*(it++) = pBuf[i]; 
 	}
-
-	//resultBuf[resBufSz] = '\0';
-
-	return std::string(resultBuf, resBufSz);
-
+	return resultBuf;
 }
 
 
-std::string
+ByteVector
 BitMatrix::SerializeMatrix() const 
 {
 	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
 
-	std::string str(Bitmap.RowCount() * Bitmap.ColCnt(), 0);
-	
-	for (size_t i = 0; i < Bitmap.RowCount(); i++)
+	ByteVector byteVec;
+	byteVec.reserve(Bitmap.RowCount() * Bitmap.ColCnt());
+
+	uint8_t bitCnt = 0, currValue = 0;
+	for (size_t i = 0; i < GetRowCount(); i++)
 	{
-		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
+		for (size_t j = 0, colCnt = GetColumnCount(); j < colCnt ; j++)
 		{
-			str += Bitmap[i][j];
+			ByteHandler::SetBit(currValue, bitCnt, UnsafeGet(i,j));
+			bitCnt++;
+			if(8 == bitCnt)
+			{
+				byteVec.push_back(currValue);
+				currValue = 0;
+				bitCnt = 0;
+			}
 		}
 	}
-	return str;
+	byteVec.shrink_to_fit();
+	return byteVec;
 }
+
+
+BitMatrix
+BitMatrix::DeserializeMatrix(
+	const ByteVector& MatrStr)
+{
+	if(MatrStr.empty()) { throw std::invalid_argument("Invalid string for deserialization"); }
+
+	ByteVector::const_iterator iter = MatrStr.begin();
+
+	uint8_t rowByteCnt = *iter;
+	++iter;
+
+	size_t iSize = 0;
+	uint8_t* pBuf = reinterpret_cast<uint8_t*>(&iSize);
+	for(uint8_t i = 0; i < rowByteCnt; ++i)
+	{
+		pBuf[i] = *iter;
+		++iter;
+	}
+
+	uint8_t colByteCnt = *iter;
+	++iter;
+
+	size_t jSize = 0;
+	pBuf = reinterpret_cast<uint8_t*>(&jSize);
+	for(uint8_t i = 0; i < rowByteCnt; ++i)
+	{
+		pBuf[i] = *iter;
+		++iter;
+	}
+
+	BitMatrix retVal(iSize, jSize);
+
+	uint8_t bitCnt = 0;
+	for(size_t i = 0; i < iSize; ++i)
+	{
+		for(size_t j = 0; j < jSize; ++j )
+		{
+			retVal.Set(i,j,ByteHandler::GetBit(*iter,bitCnt));
+			bitCnt++;
+
+			if(8 == bitCnt)
+			{
+				++iter;
+				bitCnt = 0;
+			}
+		}
+	}
+	return retVal;
+}
+
 
 
 //utility methods

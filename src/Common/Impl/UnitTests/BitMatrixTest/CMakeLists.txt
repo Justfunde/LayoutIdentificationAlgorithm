@@ -11,3 +11,8 @@ add_unit_test(
    NAME Test__BitMatrixEncodeFuzzing
    SOURCES ${SOURCES_LIST}
    LIBRARIES ${LIBS_LIST})
+
+add_unit_test(
+   NAME Test__BitMatrixSerializationFuzzing
+   SOURCES ${SOURCES_LIST}
+   LIBRARIES ${LIBS_LIST})
