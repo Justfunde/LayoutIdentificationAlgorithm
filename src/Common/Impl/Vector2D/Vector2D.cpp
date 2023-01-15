@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "Include/Vector2D.h"
+#include "Include/LayoutFragment.h"
 
 
 template <typename T>
@@ -113,7 +114,7 @@ Vector2D<T>::RowCount() const
 template <typename T>
 inline
 size_t
-Vector2D<T>::ColCnt() const 
+Vector2D<T>::ColCount() const 
 {
     //if(!CheckParameters()) { return 0;}
     return data[0].size();
@@ -152,3 +153,4 @@ Vector2D<T>::CheckParameters() const
 }
 
 template class Vector2D<uint8_t>;
+template class Vector2D<Fragment>;

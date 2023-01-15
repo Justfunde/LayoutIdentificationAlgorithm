@@ -112,8 +112,6 @@ namespace ByteHandler
    uint8_t
    CalcRealByteCnt(
       size_t Num);
-
-   
 }
 
 #endif //!__BYTE_HANDLER_H__

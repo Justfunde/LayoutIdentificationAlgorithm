@@ -7,8 +7,6 @@
 
 constexpr double eps = 0.0000000000001;
 
-
-
 class LayoutBitmapGenerator {
 private:
 

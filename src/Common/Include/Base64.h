@@ -14,9 +14,6 @@
 #include <string>
 #include <string_view>
 #include <stdexcept>
-
-
-
 namespace Base64
 {
    /*! Enum for type Base64 definition*/

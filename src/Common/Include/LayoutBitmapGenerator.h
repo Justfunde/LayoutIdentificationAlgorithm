@@ -2,25 +2,26 @@
 #include "Include/LayoutConverter.h"
 #include "Include/LayoutMatrix.h"
 #include "Include/LayoutFragment.h"
+
+
 #include <stdio.h>
-
-
 
 class LayoutBitmapGenerator {
 private:
-
-	//Must be preloaded
-	LayoutData*				data;
-	WorkspaceCoords	    	bitmapCoords;
-	std::vector<int16_t>    layers;
+	struct PreloadedData
+	{
+		LayoutData*				data = nullptr;
+		WorkspaceCoords	    	bitmapCoords;
+		std::vector<int16_t>    layers;
+	};
+	PreloadedData   preloadedData;
 
 	//Calculating inside generator
 	LayoutMatrixPtr           bitmap;
-	Fragment**				  fragments;
-	size_t	    			  fragmentsSz;
+	Vector2D<Fragment>        fragmentMatrix;  
+
 	GeometryList              geometryList;
 	LegacyGeometryList        legacyGeometryList;
-
 
 	//LayoutGeometries        geometries;
 	double  				  dx, dy;
@@ -57,16 +58,12 @@ private:
 	void ProcessGeometries (const std::vector<Geometry*>& source);
 	inline bool GeometryWorkspaceIntersection(Geometry* item);
 
-
-	
-
 	//Pushing items into fragments
 	bool pushRectangle(std::list<Geometry*>::const_iterator rect);
 	bool pushRectangle(std::list<std::shared_ptr<Geometry>>::const_iterator rect);
 	//bool push
 
 	//utility methods
-	void allocFragments();
 	void reset();
 	friend class Layout_comparator;
 };

@@ -98,7 +98,7 @@ operator^(
 
 	for (size_t i = 0; i < FirstMatr.Bitmap.RowCount(); i++)
 	{
-		for (size_t j = 0; j < FirstMatr.Bitmap.ColCnt(); j++)
+		for (size_t j = 0; j < FirstMatr.Bitmap.ColCount(); j++)
 		{
 			result.Bitmap[i][j] = FirstMatr.Bitmap[i][j] ^ SecondMatr.Bitmap[i][j];
 		}
@@ -202,7 +202,7 @@ BitMatrix::SetByte(
 	size_t jBytePos,
 	Byte Value)
 {
-	if(iBytePos >= Bitmap.RowCount() || jBytePos > Bitmap.ColCnt()) { throw std::invalid_argument("Invalid index");}
+	if(iBytePos >= Bitmap.RowCount() || jBytePos > Bitmap.ColCount()) { throw std::invalid_argument("Invalid index");}
 
 	Bitmap[iBytePos][jBytePos] = Value;
 }
@@ -352,7 +352,7 @@ BitMatrix::Zeros()
 {
 	for (size_t i = 0; i < Bitmap.RowCount(); i++)
 	{
-		for (size_t j = 0; j < Bitmap.ColCnt(); j++)
+		for (size_t j = 0; j < Bitmap.ColCount(); j++)
 		{
 			Bitmap[i][j] = 0;
 		}
@@ -442,7 +442,7 @@ BitMatrix::SerializeMatrix() const
 	if((*this).operator!()) { throw std::runtime_error("Cannot serialize. Invalid bitmap");}
 
 	ByteVector byteVec;
-	byteVec.reserve(Bitmap.RowCount() * Bitmap.ColCnt());
+	byteVec.reserve(Bitmap.RowCount() * Bitmap.ColCount());
 
 	uint8_t bitCnt = 0, currValue = 0;
 	for (size_t i = 0; i < GetRowCount(); i++)

@@ -38,7 +38,7 @@ private:
         
         public:
         Proxy(std::vector<Type>& Vec) :vec(Vec){ }
-        //todo: Убрать костыль
+        //todo: Remove crutch
         Proxy(const std::vector<Type>& Vec) : constVec(Vec),vec(constVec) {}
 
 
@@ -182,7 +182,7 @@ public:
      */
     inline
     size_t
-    ColCnt() const;
+    ColCount() const;
 
     /**
      * @brief Check matrix validity
