@@ -7,8 +7,9 @@
 #include <list>
 
 using GeometryPtr  = std::shared_ptr<Geometry>;
+using LegacyGeometryPtr = Geometry*;
 using GeometryList = std::list<std::shared_ptr<Geometry>>;
-using LegacyGeometryList = std::list<Geometry*>;
+using LegacyGeometryList = std::list<LegacyGeometryPtr>;
 
 
 namespace GeometryConverter

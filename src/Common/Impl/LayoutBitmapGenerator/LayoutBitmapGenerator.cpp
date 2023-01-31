@@ -7,47 +7,43 @@ LayoutBitmapGenerator::LayoutBitmapGenerator()
 : fragmentMatrix(2, 2)
 , dx(0)
 , dy(0)
-, isCorrect(false) 
 {
 }
 
 
 //Public methods
 
-bool
+void
 LayoutBitmapGenerator::Init(
-	LayoutData* data,
-	const Coord& min,
-	const Coord& max,
-	const std::vector <int16_t>& layers)
+	LayoutData* Data,
+	const std::vector <int16_t>& Layers,
+	const Coord& Min = { std::numeric_limits<int32_t>().min(), std::numeric_limits<int32_t>().min()},
+	const Coord& Max = { std::numeric_limits<int32_t>().max(), std::numeric_limits<int32_t>().max()})
 {
-	reset();
-	const Coord leftTop  = { min.x, max.y };
-	const Coord rightBot = { max.x, min.y };
+	if (!Data || Layers.empty() || !fragmentMatrix) throw std::invalid_argument("Invalid LayoutBitmapGenerator initialization parameters");
 
-	//Correct parameters checking
-	if (!data || layers.empty() || ! fragmentMatrix) { return false; }
+	Reset();
 
-	if (!preloadedData.bitmapCoords.setAngleCoords(leftTop, rightBot)) { return false; }
+	const Coord leftTop  = { Min.x, Max.y };
+	const Coord rightBot = { Max.x, Min.y };
+	if (!preloadedData.bitmapCoords.setAngleCoords(leftTop, rightBot)) throw std::invalid_argument("Invalid LayoutBitmapGenerator initialization parameters");
 		
-	preloadedData.data = data;
-	preloadedData.layers = layers;
-	isCorrect = true;
-
-	return isCorrect;
+	preloadedData.data = Data;
+	preloadedData.layers = Layers;
 }
 
 
 bool
 LayoutBitmapGenerator::Process(
-	size_t iSize,
-	size_t jSize)
-{
-	if (!isCorrect) { return false; }
-		
-	if (0 != iSize % fragmentMatrix.RowCount()  || 0 != jSize % fragmentMatrix.ColCount()) { return false; }
-		
-	bitmap->Resize(iSize, jSize);
+	size_t RowCount,
+	size_t ColumnCount)
+{		
+	if (0 == RowCount) throw std::invalid_argument("Invalid row count");
+	if (0 == ColumnCount) throw std::invalid_argument("Invalid column count");
+
+	//if (0 != RowCount % fragmentMatrix.RowCount()  || 0 != ColumnCount % fragmentMatrix.ColCount()) { return false; }
+
+	bitmap->Resize(RowCount, ColumnCount);
 
 	for (size_t i = 0; i < fragmentMatrix.RowCount(); i++)
 	{
@@ -56,6 +52,7 @@ LayoutBitmapGenerator::Process(
 			fragmentMatrix[i][j].SetMatrix(bitmap);
 		}
 	}
+
 	dx = СalcDelta(preloadedData.bitmapCoords.leftTop.x, preloadedData.bitmapCoords.rightBot.x, fragmentMatrix.ColCount());
 	dy = СalcDelta(preloadedData.bitmapCoords.leftTop.y, preloadedData.bitmapCoords.rightBot.y, fragmentMatrix.RowCount());
 
@@ -91,14 +88,10 @@ double
 	return fabs(N2 - N1) / PartCnt;
 }
 
-
-
-
-
-LayoutMatrix LayoutBitmapGenerator::getMatrix() const
+LayoutMatrixPtr
+LayoutBitmapGenerator::GetMatrix() const
 {
-	//return bitmap->GetMatrix();
-	return LayoutMatrix();
+	return bitmap;
 }
 
 
@@ -395,9 +388,8 @@ LayoutBitmapGenerator::InitGeometryItems()
 
 
 
-void LayoutBitmapGenerator::reset()
+void LayoutBitmapGenerator::Reset()
 {
-	isCorrect = false;
 	preloadedData.data = nullptr;
 	fragmentMatrix.Reset();
 }
@@ -407,7 +399,7 @@ void LayoutBitmapGenerator::reset()
 
 LayoutBitmapGenerator::~LayoutBitmapGenerator()
 {
-	reset();
+	Reset();
 }
 
 

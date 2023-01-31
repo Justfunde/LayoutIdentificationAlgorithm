@@ -52,7 +52,7 @@ private:
 
 	//utility methods
 	void allocFragments();
-	void reset();
+	void Reset();
 
 };
 

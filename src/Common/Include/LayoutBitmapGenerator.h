@@ -25,7 +25,6 @@ private:
 
 	//LayoutGeometries        geometries;
 	double  				  dx, dy;
-	bool                      isCorrect;
 	double                    eps = 0.0000000000001;
 
 	
@@ -33,9 +32,21 @@ public:
 	LayoutBitmapGenerator();
 	~LayoutBitmapGenerator();
 	
-	bool Init(LayoutData* data,const Coord& leftTop, const Coord& rightBot, const std::vector <int16_t>& layers);
-	bool Process(size_t iSize,size_t jSize);
-	LayoutMatrix getMatrix() const;
+	void 
+	Init(
+		LayoutData* Data,
+		const std::vector <int16_t>& Layers,
+		const Coord& LeftTop,
+		const Coord& RightBot);
+
+
+	bool
+	Process(
+		size_t iSize,
+		size_t jSize);
+
+	LayoutMatrixPtr
+	GetMatrix() const;
 
 private:
 
@@ -64,7 +75,7 @@ private:
 	//bool push
 
 	//utility methods
-	void reset();
+	void Reset();
 	friend class Layout_comparator;
 };
 

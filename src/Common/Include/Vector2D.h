@@ -158,7 +158,7 @@ public:
      * @brief As operator[][] but throws std::invalid_argument exception
      * 
      * @param Row Row num
-     * @param Col Column num
+     * @param Col Column numа
      * @return Type& Ref to obj at data[Row][Col]
      */
     Type&
