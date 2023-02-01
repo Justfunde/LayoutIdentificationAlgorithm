@@ -89,8 +89,9 @@ struct Element {
     bool                    isFlat;
     Coord                   min,
         max;
+    bool nested;
 public:
-    Element() : isFlat(true), min({ -1, -1 }), max({ -1, -1 }) {}
+    Element() : isFlat(true), min({ -1, -1 }), max({ -1, -1 }), nested(false) {}
     ~Element() {
         for (size_t i = 0; i < geometries.size(); ++i) {
             delete geometries[i];
@@ -102,6 +103,7 @@ public:
 
 struct Layer {
     int16_t                 layer;
+    int16_t                 dataType;
     std::string             name;
     std::vector<Geometry*> geometries;
 };
@@ -111,6 +113,8 @@ struct Library {
     Units                   units;
     std::vector<Element*>  elements;
     std::vector<Layer>      layers;
+    Coord                   min,
+        max;
 public:
     Library() {
         units.user = 0.001;
