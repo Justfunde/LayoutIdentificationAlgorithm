@@ -225,7 +225,7 @@ MskReader::FillBox(
     currCoord.y = RightTop.y;
     Box2Fill->coords.push_back(currCoord);
 
-    Box2Fill->layer = LayerNum;
+    Box2Fill->layer = LNum;
 
     Box2Fill->min = Box2Fill->max = Box2Fill->coords[0];
     for (size_t i = 1; i < Box2Fill->coords.size(); ++i) {
