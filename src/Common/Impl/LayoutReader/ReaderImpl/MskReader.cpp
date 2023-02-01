@@ -16,7 +16,9 @@
 #include <cstring>
 #include <regex>
 
-static std::unordered_map <std::string, int16_t> g_layerMap =
+static 
+std::unordered_map <std::string, LayerNum>
+g_layerMap =
 {
     {"TITLE",-6},
     {"BB",-5},
@@ -34,7 +36,9 @@ static std::unordered_map <std::string, int16_t> g_layerMap =
     {"M6",55},
 };
 
-constexpr int16_t g_undefinedValue = std::numeric_limits<int16_t>::min();
+constexpr
+LayerNum
+g_undefinedLayerNum = std::numeric_limits<LayerNum>::min();
 
 
 bool
@@ -64,31 +68,14 @@ MskReader::IsMyFormat(
 }
 
 
-int16_t
-MskReader::ConvertMskLayerNum(
+LayerNum
+MskReader::LayerNameToLayerNum(
    const std::string& LayerName)
 {
     auto it = g_layerMap.find(LayerName);
-    if (it == g_layerMap.end()) { return g_undefinedValue; }
+    if (it == g_layerMap.end()) { return g_undefinedLayerNum; }
 
     return it->second;
-}
-
-
-std::vector<Layer>::iterator
-MskReader::FindByLayerNum(
-   std::vector <Layer>& Layers,
-   int16_t LayerNum)
-{
-   for(std::vector<Layer>::iterator it = Layers.begin(); it != Layers.end(); it++)
-   {
-      if (it->layer == LayerNum)
-      {
-         return it;
-      }
-   }
-
-   return Layers.end();
 }
 
 
@@ -133,9 +120,9 @@ MskReader::Read(
       std::string fileLine;
       while (std::getline(file, fileLine))
       {
-         if (fileLine.find("BB") != std::string::npos)  { ReadBoundingBox(fileLine); }
+         if (fileLine.find("BB") != std::string::npos)  { ReadSectionBoundingBox(fileLine); }
          if (fileLine.find("REC") != std::string::npos) { ReadSectionRectangle(fileLine); }
-         if (fileLine.find("TITLE") != std::string::npos) { ReadTitle(fileLine); }
+         if (fileLine.find("TITLE") != std::string::npos) { ReadSectionTitle(fileLine); }
       }
       p_activeLibrary->elements.push_back(p_activeElement);
       p_data->libraries.push_back(p_activeLibrary);
@@ -185,7 +172,7 @@ MskReader::Read(
 
 inline 
 bool 
-MskReader::ReadRecCoords(
+MskReader::ParseRecLine(
    const std::string& Line,
    Coord& LeftBot,
    Coord& RightTop,
@@ -209,11 +196,11 @@ MskReader::FillBox(
    Geometry* Box2Fill,
    const Coord& LeftBot,
    const Coord& RightTop,
-   uint16_t LayerNum)
+   LayerNum LNum)
 {
     Coord currCoord;
-    int32_t dx = calcDelta(LeftBot.x, RightTop.x);
-    int32_t dy = calcDelta(LeftBot.y, RightTop.y);
+    int32_t dx = CalcDelta(LeftBot.x, RightTop.x);
+    int32_t dy = CalcDelta(LeftBot.y, RightTop.y);
 
     //Left top
     currCoord.x = RightTop.x - dx;
@@ -263,14 +250,14 @@ MskReader::ReadSectionRectangle(
       Coord leftBot;
       Coord rightTop;
       std::string layerName;
-      if (!ReadRecCoords(FileLine, leftBot, rightTop, layerName)) {throw std::runtime_error("Coordinates was not read");}
+      if (!ParseRecLine(FileLine, leftBot, rightTop, layerName)) {throw std::runtime_error("Coordinates was not read");}
 
-      const int16_t layerNum = ConvertMskLayerNum(layerName);
-      if (layerNum == g_undefinedValue) {throw std::runtime_error("File contains invalid layer!");}
+      const int16_t layerNum = LayerNameToLayerNum(layerName);
+      if (layerNum == g_undefinedLayerNum) {throw std::runtime_error("File contains invalid layer!");}
 
       FillBox(currBox, leftBot, rightTop, layerNum);
 
-      if (auto it = FindByLayerNum(p_activeLibrary->layers, layerNum); p_activeLibrary->layers.end() == it )
+      if (auto it = std::find_if(p_activeLibrary->layers.begin(), p_activeLibrary->layers.end(),[&](const Layer& val){ return layerNum == val.layer;}); p_activeLibrary->layers.end() == it )
       {
          Layer tmpLayer;
          tmpLayer.layer = currBox->layer;
@@ -290,14 +277,13 @@ MskReader::ReadSectionRectangle(
       if (currBox)
       {
          delete currBox;
-         currBox = nullptr;
       }
    }
 }
 
 
 void 
-MskReader::ReadBoundingBox(
+MskReader::ReadSectionBoundingBox(
    const std::string& FileLine)
 {
    Geometry* boundingBox = new Rectangle;
@@ -321,14 +307,13 @@ MskReader::ReadBoundingBox(
       if (boundingBox)
       {
          delete boundingBox;
-         boundingBox = nullptr;
       }
    }
 }
 
 
 void 
-MskReader::ReadTitle(
+MskReader::ReadSectionTitle(
    const std::string& FileLine)
 {
    Geometry* text = new Text;
@@ -351,7 +336,6 @@ MskReader::ReadTitle(
       if (text)
       {
          delete text;
-         text = nullptr;
       }
    }
 }
@@ -359,7 +343,7 @@ MskReader::ReadTitle(
 
 inline
 int32_t
-MskReader::calcDelta(
+MskReader::CalcDelta(
    int32_t first,
    int32_t second)
 {
