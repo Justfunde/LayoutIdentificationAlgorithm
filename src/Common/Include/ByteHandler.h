@@ -13,6 +13,9 @@
 #include <cstddef>
 #include <vector>
 
+
+#define BIT(n)         (1U << (n))
+
 constexpr uint8_t g_bitsInByte = 8U;///< bits in byte count
 
 using Byte = uint8_t;

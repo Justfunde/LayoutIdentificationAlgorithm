@@ -4,9 +4,6 @@
 #include <random>
 #include <ctime>
 
-#define BIT(n)         (1U << (n))
-
-constexpr uint8_t g_BitsInByte = 8;
 
 BitMatrix::BitMatrix(
 	const BitMatrix& Rhs)
@@ -33,7 +30,7 @@ BitMatrix::BitMatrix(
 {
 	try{
 		
-		const size_t colCnt = (Jsize % g_BitsInByte) ? (Jsize / g_BitsInByte + 1) : (Jsize / g_BitsInByte);
+		const size_t colCnt = (Jsize % g_bitsInByte) ? (Jsize / g_bitsInByte + 1) : (Jsize / g_bitsInByte);
 
 		Bitmap.Resize(RowCnt, colCnt);
 	}
@@ -143,9 +140,9 @@ BitMatrix::Get(
 
 	// finding byte pos in arr
 	const size_t iBytePos = i;
-	const size_t jBytePos = j / g_BitsInByte;
-	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
-	return static_cast<bool>((Bitmap[iBytePos][jBytePos] & BIT(jAdditBitPos)) >> jAdditBitPos);
+	const size_t jBytePos = j / g_bitsInByte;
+	const size_t jAdditBitPos = g_bitsInByte - 1 - j % g_bitsInByte;
+	return ByteHandler::GetBit(Bitmap[iBytePos][jBytePos], jAdditBitPos);
 }
 
 
@@ -154,7 +151,7 @@ BitMatrix::UnsafeGet(
 	size_t i,
 	size_t j) const
 {
-	return static_cast<bool>((Bitmap[i][j / g_BitsInByte] & BIT(g_BitsInByte - 1 - j % g_BitsInByte)) >> (g_BitsInByte - 1 - j % g_BitsInByte));
+	return static_cast<bool>((Bitmap[i][j / g_bitsInByte] & BIT(g_bitsInByte - 1 - j % g_bitsInByte)) >> (g_bitsInByte - 1 - j % g_bitsInByte));
 }
 
 
@@ -182,17 +179,10 @@ BitMatrix::Set(
 	
 	//finding byte pos in arr
 	const size_t iBytePos = i;
-	const size_t jBytePos = j / g_BitsInByte;
-	const size_t jAdditBitPos = g_BitsInByte - 1 - j % g_BitsInByte;
+	const size_t jBytePos = j / g_bitsInByte;
+	const size_t jAdditBitPos = g_bitsInByte - 1 - j % g_bitsInByte;
 
-	if(Value)
-	{
-		Bitmap[iBytePos][jBytePos] |= BIT(jAdditBitPos);
-	}
-	else
-	{
-		Bitmap[iBytePos][jBytePos] &= ~BIT(jAdditBitPos);
-	}
+	ByteHandler::SetBit(Bitmap[iBytePos][jBytePos], jAdditBitPos, Value);
 }
 
 
@@ -216,11 +206,11 @@ BitMatrix::UnsafeSet(
 {
 	if(Value)
 	{
-		Bitmap[i][j / g_BitsInByte] |= BIT(g_BitsInByte - 1 - j % g_BitsInByte);
+		Bitmap[i][j / g_bitsInByte] |= BIT(g_bitsInByte - 1 - j % g_bitsInByte);
 	}
 	else
 	{
-		Bitmap[i][j / g_BitsInByte] &= ~BIT(g_BitsInByte - 1 - j % g_BitsInByte);
+		Bitmap[i][j / g_bitsInByte] &= ~BIT(g_bitsInByte - 1 - j % g_bitsInByte);
 	}
 }
 
@@ -385,7 +375,7 @@ BitMatrix::Resize(
 	Reset();
 	Isize = RowCnt;
 	Jsize = ColCnt;
-	const size_t colCnt = (Jsize % (sizeof(int8_t) * g_BitsInByte)) ? (Jsize / (sizeof(int8_t) * g_BitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_BitsInByte));
+	const size_t colCnt = (Jsize % (sizeof(int8_t) * g_bitsInByte)) ? (Jsize / (sizeof(int8_t) * g_bitsInByte) + 1) : (Jsize / (sizeof(int8_t) * g_bitsInByte));
 	Bitmap.Resize(RowCnt, colCnt);
 }
 
@@ -513,7 +503,6 @@ BitMatrix::DeserializeMatrix(
 	}
 	return retVal;
 }
-
 
 
 //utility methods
