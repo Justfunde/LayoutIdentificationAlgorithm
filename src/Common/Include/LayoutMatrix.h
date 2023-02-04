@@ -1,3 +1,13 @@
+/**
+ * @file LayoutMatrix.h
+ * @author Mikhail Kotlyarov  ((m.kotlyarov@elvis.ru))
+ * @brief Matrix processing layout data
+ * @version 0.1
+ * @date 2023-02-04
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #ifndef __LAYOUT_MATRIX_H__
 #define __LAYOUT_MATRIX_H__
 
@@ -15,62 +25,266 @@
 class LayoutMatrix;
 using LayoutMatrixPtr = std::shared_ptr<LayoutMatrix>;
 
+/**
+ * @brief Struct for desctiprion of workspace coordinates
+ * @class WorkspaceCoords
+ */
 struct WorkspaceCoords
 {
-	Coord leftTop, rightBot;
+	Coord leftTop, rightBot; ///< Coordinates of workspace
 
 public:
+	/**
+	 * @brief Construct a new Workspace Coords object
+	 * 
+	 */
 	WorkspaceCoords():leftTop({0,0}), rightBot({ 0,0 }) {}
-	bool setAngleCoords(const Coord& leftTop, const Coord& rightBot);
-	bool isInWorkspace(int32_t x, int32_t y);
+
+	/**
+	 * @brief Set angle coordinates of workspace
+	 * 
+	 * @param leftTop Left top coordinates of workspace
+	 * @param rightBot Right bot coordinates of workspace
+	 * @return true 
+	 * @return false 
+	 */
+	bool
+	SetAngleCoords(
+		const Coord& LeftTop,
+		const Coord& RightBot);
+
+
+	/**
+	 * @brief Check if point inside workspace
+	 * 
+	 * @param Point Point coordinates
+	 * @return true 
+	 * @return false 
+	 */
+	bool
+	isInWorkspace(
+		const Coord& Point);
 };
 
 
+
+/**
+ * @brief Class for handling and hashing layout zonding info
+ * @class LayoutMatrix
+ */
 class LayoutMatrix : public BitMatrix
 {
 public:
-	//Constructors
+	
+	/**
+	 * @brief Construct a new Layout Matrix object
+	 */
 	LayoutMatrix():BitMatrix() {}
-	LayoutMatrix(const std::string& in_hash);
-	LayoutMatrix(size_t i, size_t j) :BitMatrix(i, j) {}
-	LayoutMatrix(const BitMatrix& matrix):BitMatrix(matrix) {}
-	LayoutMatrix(const LayoutMatrix& matrix);
-	LayoutMatrix(LayoutMatrix&& matrix) noexcept;
-	LayoutMatrix(BitMatrix&& matrix) noexcept;
 
 
-	//Matrix based methods
-	std::string GetHash();
-	void Hash2Matrix(const std::string &Hash);
+	/**
+	 * @brief Construct a new Layout Matrix object
+	 * 
+	 * @param RowCnt Row count 
+	 * @param ColCnt Column count
+	 */
+	LayoutMatrix(
+		size_t RowCnt,
+		size_t ColCnt) :BitMatrix(RowCnt, ColCnt) {}
 
 
-	//Hash based methods
-	void setHash(const std::string& hash);
-	BitMatrix decodeHash();
+	/**
+	 * @brief Construct a new Layout Matrix object(copy)
+	 * 
+	 * @param Matrix Matrix object
+	 */
+	LayoutMatrix(
+		const BitMatrix& Matrix):BitMatrix(Matrix) {}
 
 	
-	LayoutMatrix& operator=(const BitMatrix& matrix);
-	LayoutMatrix& operator=(BitMatrix&& matrix) noexcept;
-	LayoutMatrix& operator=(const LayoutMatrix& matrix);
-	LayoutMatrix& operator=(LayoutMatrix&& matrix) noexcept;
-	bool operator!() const  { return !static_cast<BitMatrix>(*this);}
+	/**
+	 * @brief Construct a new Layout Matrix object(copy)
+	 * 
+	 * @param Matrix Matrix object
+	 */
+	LayoutMatrix(
+		const LayoutMatrix& Matrix);
+
+
+	/**
+	 * @brief Construct a new Layout Matrix object(move)
+	 * 
+	 * @param Matrix Matrix object
+	 */
+	LayoutMatrix(
+		LayoutMatrix&& Matrix) noexcept;
+
+
+	/**
+	 * @brief Construct a new Layout Matrix object(move)
+	 * 
+	 * @param Matrix Matrix object
+	 */
+	LayoutMatrix(
+		BitMatrix&& Matrix) noexcept;
+
+
+public:
+
+	/**
+	 * @brief Calc matrix hash
+	 * 
+	 * @return std::string Hashing result
+	 */
+	std::string
+	GetHash() const;
+
+
+	/**
+	 * @brief Matrix initialization by hash decoding
+	 * 
+	 * @param Hash 
+	 */
+	void
+	InitMatrFromHash(
+		std::string_view Hash);
+
+
+public:
+
+	/**
+	 * @brief Copy overloaded operator=
+	 * 
+	 * @param Matrix Matrix to copy
+	 * @return LayoutMatrix& 
+	 */
+	LayoutMatrix&
+	operator=(const BitMatrix& Matrix);
+
+
+	/**
+	 * @brief Move overloaded operator=
+	 * 
+	 * @param Matrix Matrix to move
+	 * @return LayoutMatrix& 
+	 */
+	LayoutMatrix&
+	operator=(BitMatrix&& Matrix) noexcept;
+
+
+	/**
+	 * @brief Copy overloaded operator=
+	 * 
+	 * @param Matrix Matrix to copy
+	 * @return LayoutMatrix& 
+	 */
+	LayoutMatrix&
+	operator=(const LayoutMatrix& Matrix);
+
+
+	/**
+	 * @brief Move overloaded operator=
+	 * 
+	 * @param Matrix Matrix to move
+	 * @return LayoutMatrix& 
+	 */
+	LayoutMatrix&
+	operator=(LayoutMatrix&& Matrix) noexcept;
+
+
+	/**
+	 * @brief Overloaded operator !
+	 * 
+	 * @return true 
+	 * @return false 
+	 */
+	bool
+	operator!() const  { return !static_cast<BitMatrix>(*this); }
+
+
 
 	//static methods
-	static LayoutMatrix DecodeHash(std::string_view Hash);
-	static std::string  EncodeHash(const LayoutMatrix &Matrix);
 
-	static std::string EncodeSz(uint32_t RowCnt, uint32_t ColCnt);
-	static char EncodeEncodings(bool Rle, bool Base64);
-	static void DecodeSz(std::string_view EncodedSzStr, uint32_t &ColCnt, uint32_t &RowCnt);
-	static void DecodeEncodings(char EncodedEncodings, bool &Rle, bool &Base64);
-private:
-	
-
-	std::string EncodeMatrix();
-	BitMatrix DecodeHash();
-
+	/**
+	 * @brief Creating matrix from hash
+	 * 
+	 * @param Hash Matrix hash
+	 * @return LayoutMatrix 
+	 */
+	static
+	LayoutMatrix
+	DecodeHash(
+		std::string_view Hash);
 
 
+	/**
+	 * @brief Calc matrix hash
+	 * 
+	 * @param Matrix Matrix to hash
+	 * @return std::string 
+	 */
+	static
+	std::string
+	EncodeHash(
+		const LayoutMatrix& Matrix);
+
+
+	/**
+	 * @brief Encode size of matrix
+	 * 
+	 * @param RowCnt Row count
+	 * @param ColCnt Column count
+	 * @return std::string 
+	 */
+	static
+	std::string
+	EncodeSz(
+		uint32_t RowCnt,
+		uint32_t ColCnt);
+
+
+	/**
+	 * @brief Encode used encodings
+	 * 
+	 * @param Rle Flag of Rle
+	 * @param Base64 Flag of Base64
+	 * @return char 
+	 */
+	static
+	char
+	EncodeEncodings(
+		bool Rle,
+		bool Base64);
+
+
+	/**
+	 * @brief Decode matrix sizes
+	 * 
+	 * @param EncodedSzStr Encoded str contains sizes
+	 * @param ColCnt Decoded column count
+	 * @param RowCnt Decoded row count
+	 */
+	static
+	void
+	DecodeSz(
+		std::string_view EncodedSzStr,
+		uint32_t &ColCnt,
+		uint32_t &RowCnt);
+
+
+	/**
+	 * @brief Decode used encodings
+	 * 
+	 * @param EncodedEncodings Encoded str contains encodings flag
+	 * @param Rle Decoded RLE use flag
+	 * @param Base64 Decoded Base64 use flag
+	 */
+	static
+	void
+	DecodeEncodings(
+		char EncodedEncodings,
+		bool &Rle,
+		bool &Base64);
 };
 
 #endif //!__LAYOUT_MATRIX_H__

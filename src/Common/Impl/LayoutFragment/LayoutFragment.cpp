@@ -36,7 +36,7 @@ Fragment::GeometryWorkspaceIntersection(
 void 
 Fragment::Reset()
 {
-	angleCoords.setAngleCoords({0,0}, {0,0});
+	angleCoords.SetAngleCoords({0,0}, {0,0});
 	//boundIndicies = {0, 0, 0, 0};
 	includedItems.clear();
 	layoutMatrix.reset();

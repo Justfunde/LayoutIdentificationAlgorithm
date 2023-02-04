@@ -25,51 +25,48 @@ namespace MatrixEncodingParamters
 
 //CoordinateWorkspace
 
-bool WorkspaceCoords::setAngleCoords(const Coord& leftTop, const Coord& rightBot)
+bool
+WorkspaceCoords::SetAngleCoords(
+	const Coord& LeftTop,
+	const Coord& RightBot)
 {
-	if (leftTop.x > rightBot.x || leftTop.y < rightBot.y)
-		return false;
-	this->leftTop = leftTop;
-	this->rightBot = rightBot;
+	if (LeftTop.x > RightBot.x || LeftTop.y < RightBot.y) { return false; }
+
+	this->leftTop = LeftTop;
+	this->rightBot = RightBot;
 	return true;
 }
 
-bool WorkspaceCoords::isInWorkspace(int32_t x, int32_t y)
+bool
+WorkspaceCoords::isInWorkspace(
+	const Coord& Point)
 {
-	if (x >leftTop.x && x < rightBot.x)
-		if (y < leftTop.y && y > rightBot.y)
+	if (Point.x >leftTop.x && Point.x < rightBot.x)
+	{
+		if (Point.y < leftTop.y && Point.y > rightBot.y)
+		{
 			return true;
+		}
+	}
 	return false;
 }
 
 
 //LayoutMatrix
 
-//Constrictors
 
-LayoutMatrix::LayoutMatrix(const std::string& in_hash)
-{
-	try {
-		//RLE_decode(Base64_decode(in_hash));
-	}
-	catch (const std::exception& exception)
-	{
-		std::cerr << "\nLayoutMatrix constructor error:" << exception.what();
-	}
-}
 
-LayoutMatrix::LayoutMatrix(const LayoutMatrix& matrix) :BitMatrix(matrix)
-{
-}
 
-LayoutMatrix::LayoutMatrix(LayoutMatrix&& matrix) noexcept
+LayoutMatrix::LayoutMatrix(
+	LayoutMatrix&& matrix) noexcept
 {
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
 	Bitmap = matrix.Bitmap;
 }
 
-LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
+LayoutMatrix::LayoutMatrix(
+	BitMatrix&& matrix) noexcept
 {
 	Isize = matrix.Isize;
 	Bitmap = matrix.Bitmap;
@@ -78,44 +75,40 @@ LayoutMatrix::LayoutMatrix(BitMatrix&& matrix) noexcept
 
 //Operators
 
-LayoutMatrix& LayoutMatrix::operator=(const BitMatrix& matrix)
+LayoutMatrix&
+LayoutMatrix::operator=(const BitMatrix& matrix)
 {
 	if (&matrix == this)
-		return *this;
-	try {
-		Reset();
-		Isize = matrix.Isize;
-		Jsize = matrix.Jsize;
-		Bitmap = matrix.Bitmap;
-	}
-	catch (std::exception& exception)
 	{
-		std::cerr << "\nLayoutMatrix operator= error:" << exception.what();
-		Reset();
-	}
-	return *this;
-}
-
-LayoutMatrix& LayoutMatrix::operator=(const LayoutMatrix& matrix)
-{
-	if (&matrix == this)
 		return *this;
-	try {
+	}
+
 	Reset();
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
 	Bitmap = matrix.Bitmap;
-	
-	}
-	catch (std::exception& exception)
+	return *this;
+}
+
+LayoutMatrix&
+LayoutMatrix::operator=(
+	const LayoutMatrix& matrix)
+{
+	if (&matrix == this)
 	{
-		std::cerr << "\nLayoutMatrix operator= error:" << exception.what();
-		Reset();
+		return *this;
 	}
+
+	Reset();
+	Isize = matrix.Isize;
+	Jsize = matrix.Jsize;
+	Bitmap = matrix.Bitmap;
 	return *this;
 }
 	
-LayoutMatrix& LayoutMatrix::operator=(BitMatrix&& matrix) noexcept
+LayoutMatrix&
+LayoutMatrix::operator=(
+	BitMatrix&& matrix) noexcept
 {
 	Reset();
 
@@ -133,6 +126,19 @@ LayoutMatrix& LayoutMatrix::operator=(LayoutMatrix&& matrix) noexcept
 	Isize = matrix.Isize;
 	Jsize = matrix.Jsize;
 	return *this;
+}
+
+std::string
+LayoutMatrix::GetHash() const
+{
+	return LayoutMatrix::EncodeHash(*this);
+}
+
+void
+LayoutMatrix::InitMatrFromHash(
+	std::string_view Hash)
+{
+	*this = std::move(LayoutMatrix::DecodeHash(Hash));
 }
 
 

@@ -26,7 +26,7 @@ LayoutBitmapGenerator::Init(
 
 	const Coord leftTop  = { Min.x, Max.y };
 	const Coord rightBot = { Max.x, Min.y };
-	if (!preloadedData.bitmapCoords.setAngleCoords(leftTop, rightBot)) throw std::invalid_argument("Invalid LayoutBitmapGenerator initialization parameters");
+	if (!preloadedData.bitmapCoords.SetAngleCoords(leftTop, rightBot)) throw std::invalid_argument("Invalid LayoutBitmapGenerator initialization parameters");
 		
 	preloadedData.data = Data;
 	preloadedData.layers = Layers;
@@ -150,7 +150,7 @@ void LayoutBitmapGenerator::InitFragmentsWorkspaces()
 		for (size_t j = 0; j < fragmentMatrix.ColCount(); j++)
 		{
 			WorkspaceCoords tmp;
-			tmp.setAngleCoords(Coord(preloadedData.bitmapCoords.leftTop.x + j * dx, preloadedData.bitmapCoords.leftTop.y - i * dy),
+			tmp.SetAngleCoords(Coord(preloadedData.bitmapCoords.leftTop.x + j * dx, preloadedData.bitmapCoords.leftTop.y - i * dy),
 							   Coord(preloadedData.bitmapCoords.leftTop.x + (j + 1) * dx, preloadedData.bitmapCoords.leftTop.y - (i + 1) * dy));
 			fragmentMatrix[i][j].SetWorkspaceCoords(tmp);
 			fragmentMatrix[i][j].SetMatrix(bitmap);
