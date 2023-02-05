@@ -132,7 +132,8 @@ Vector2D<T>::operator!() const noexcept
 template <typename T>
 void
 Vector2D<T>::Reset() 
-{ 
+{
+    if(data.empty()) { return;}
     data.clear();
 }
 

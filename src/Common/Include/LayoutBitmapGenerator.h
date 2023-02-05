@@ -2,7 +2,7 @@
 #include "Include/LayoutConverter.h"
 #include "Include/LayoutMatrix.h"
 #include "Include/LayoutFragment.h"
-
+#include "Include/LayoutBitmapZond.h"
 
 #include <stdio.h>
 
@@ -23,21 +23,21 @@ private:
 	GeometryList              geometryList;
 	LegacyGeometryList        legacyGeometryList;
 
-	//LayoutGeometries        geometries;
+	LayoutZond                zond;
+
 	double  				  dx, dy;
-	double                    eps = 0.0000000000001;
 
 	
 public:
-	LayoutBitmapGenerator();
+	LayoutBitmapGenerator(): bitmap(new LayoutMatrix ),fragmentMatrix(1, 1) , dx(0) , dy(0), zond(0.0000000000001) {}
 	~LayoutBitmapGenerator();
 	
 	void 
 	Init(
 		LayoutData* Data,
 		const std::vector <int16_t>& Layers,
-		const Coord& LeftTop,
-		const Coord& RightBot);
+		const Coord& Min,
+		const Coord& Max);
 
 
 	bool

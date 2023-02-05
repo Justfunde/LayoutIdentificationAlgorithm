@@ -3,14 +3,6 @@
 #include "Include/LayoutBitmapGenerator.h"
 #include "Include/LayoutConverter.h"
 
-LayoutBitmapGenerator::LayoutBitmapGenerator() 
-: fragmentMatrix(2, 2)
-, dx(0)
-, dy(0)
-{
-}
-
-
 //Public methods
 
 void
@@ -56,22 +48,34 @@ LayoutBitmapGenerator::Process(
 	dx = СalcDelta(preloadedData.bitmapCoords.leftTop.x, preloadedData.bitmapCoords.rightBot.x, fragmentMatrix.ColCount());
 	dy = СalcDelta(preloadedData.bitmapCoords.leftTop.y, preloadedData.bitmapCoords.rightBot.y, fragmentMatrix.RowCount());
 
+	Indicies boundIndicies;
+	boundIndicies.iBegin = boundIndicies.jBegin = 0;
+	boundIndicies.iEnd = RowCount - 1;
+	boundIndicies.jEnd = ColumnCount - 1;
+
+	const double curr_dx = СalcDelta(preloadedData.bitmapCoords.leftTop.x, preloadedData.bitmapCoords.rightBot.x, bitmap->GetColumnCount());
+	const double curr_dy = СalcDelta(preloadedData.bitmapCoords.leftTop.y, preloadedData.bitmapCoords.rightBot.y, bitmap->GetRowCount());
+	zond.SetDeltas(curr_dx, curr_dy);
+	
+	zond.SetBoundIndicies(boundIndicies);
+	zond.SetWorkspaceCoord(preloadedData.bitmapCoords);
+
 	InitGeometryItems();
-	InitFragmentsWorkspaces();
-	DistributeGeometries();
-	InitFragmentsIndicies();
+	//InitFragmentsWorkspaces();
+	//DistributeGeometries();
+	//InitFragmentsIndicies();
 	FirstMatrixInit();
 
 	//bitmap.print();
 	//cout << "\n\n\nFilling matrix:\n";
-	for (size_t i = 0; i < fragmentMatrix.RowCount(); i++)
+	/*for (size_t i = 0; i < fragmentMatrix.RowCount(); i++)
 	{
 		for (size_t j = 0; j < fragmentMatrix.ColCount(); j++)
 		{
 			//cout << "\nFragment[" << i << "][" << j << "]\n";
 			fragmentMatrix[i][j].Process();
 		}
-	}
+	}*/
 	//cout << endl << endl << endl << endl;
 	bitmap->Print();
 	return true;	
@@ -105,38 +109,12 @@ void LayoutBitmapGenerator::FirstMatrixInit()
 
 	for (auto it : geometryList)
 	{
-		switch (it->type)
-		{
-			case GeometryType::polygon:
-			{
-				ZondPolygon(it.get());
-				break;
-			}
-			case GeometryType::rectangle:
-			{
-				ZondRectangle(it.get());
-				break;
-			}
-			default: {throw std::runtime_error("Invalid geometry type");}
-		}
+		zond.ZondGeometry(it.get(), bitmap);
 	}
 
 	for (auto it : legacyGeometryList)
 	{
-		switch (it->type)
-		{
-			case GeometryType::polygon:
-			{
-				ZondPolygon(it);
-				break;
-			}
-			case GeometryType::rectangle:
-			{
-				ZondRectangle(it);
-				break;
-			}
-			default: { throw std::runtime_error("Invalid geometry type"); }
-		}
+		zond.ZondGeometry(it, bitmap);
 	}
 }
 
@@ -333,6 +311,7 @@ LayoutBitmapGenerator::ProcessGeometries(
 					break;
 				}
 
+				//todo:refactoring
 				case GeometryType::path:
 				{
 					GeometryList rectangles = GeometryConverter::PathToRectList(PreloadedGeometries[i]);

@@ -99,6 +99,14 @@ LayoutZond::ZondGeometry(
 	GeometryPtr Geom,
 	LayoutMatrixPtr Matrix)
 {
+	ZondGeometry(Geom.get(), Matrix);
+}
+
+void
+LayoutZond::ZondGeometry(
+	LegacyGeometryPtr Geom,
+	LayoutMatrixPtr Matrix)
+{
 	switch (Geom->type)
 	{
 		case GeometryType::polygon : ZondPolygon(Geom, Matrix); break;
@@ -117,12 +125,6 @@ LayoutZond::ZondRectangle(
 {
 	const Coord& leftTop = Rect->coords[0];
 	const Coord& rightBot = Rect->coords[2];
-
-	//Theoretical indicies
-	double iRectBeginIndex  = static_cast<double> (boundIndicies.iBegin);
-	double iRectEndIndex    = static_cast<double> (boundIndicies.iEnd);
-	double jRectBegindIndex = static_cast<double> (boundIndicies.jBegin);
-	double jRectEndIndex    = static_cast<double> (boundIndicies.jEnd);
 
 	//checking if Rectangle lies on the fragment
 	//printf("Bound indicies:\nmin = [%d,%d]\tmax = [%d,%d]\n ",boundIndicies.i_begin, boundIndicies.j_begin, boundIndicies.i_end, boundIndicies.j_end);
@@ -147,13 +149,13 @@ LayoutZond::ZondRectangle(
 		}
 
 
-		jRectBegindIndex = (leftTop.x - angleCoords.leftTop.x) / dx;
+	double jRectBegindIndex = (leftTop.x - angleCoords.leftTop.x) / dx;
 
-		jRectEndIndex = (rightBot.x - angleCoords.leftTop.x) / dx;
+	double jRectEndIndex = (rightBot.x - angleCoords.leftTop.x) / dx;
 
-		iRectBeginIndex = (angleCoords.leftTop.y - leftTop.y) / dy;
+	double iRectBeginIndex = (angleCoords.leftTop.y - leftTop.y) / dy;
 
-		iRectEndIndex = (angleCoords.leftTop.y - rightBot.y) / dy;
+	double iRectEndIndex = (angleCoords.leftTop.y - rightBot.y) / dy;
 
 	//std::cout << "Indicies before normalization:\n";
 	//printf("begin = [%.2f,%.2f]\t end = [%.2f,%.2f]\n", iRectBeginIndex, jRectBegindIndex, iRectEndIndex, jRectEndIndex);

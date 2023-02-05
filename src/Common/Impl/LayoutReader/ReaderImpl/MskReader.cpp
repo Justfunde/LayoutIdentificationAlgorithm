@@ -120,6 +120,9 @@ MskReader::Read(
       std::string fileLine;
       while (std::getline(file, fileLine))
       {
+         fileLine.erase(std::remove(fileLine.begin(), fileLine.end(), '\r'), fileLine.end());
+         fileLine.erase(std::remove(fileLine.begin(), fileLine.end(), '\n'), fileLine.end());
+         
          if (fileLine.find("BB") != std::string::npos)  { ReadSectionBoundingBox(fileLine); }
          if (fileLine.find("REC") != std::string::npos) { ReadSectionRectangle(fileLine); }
          if (fileLine.find("TITLE") != std::string::npos) { ReadSectionTitle(fileLine); }

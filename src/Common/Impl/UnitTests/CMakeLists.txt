@@ -1,5 +1,6 @@
 add_subdirectory(Base64Test)
 add_subdirectory(ByteHandlerTest)
 #add_subdirectory(BitmapGeneratorTest)
+add_subdirectory(GeneratorTest)
 add_subdirectory(BitMatrixTest)
 add_subdirectory(LayoutReaderTest)

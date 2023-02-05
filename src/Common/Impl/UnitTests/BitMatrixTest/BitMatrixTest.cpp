@@ -24,6 +24,7 @@ Test__BitMatrixFuzzing()
    while (cycleCnt--)
    {
       LayoutMatrix matrix(InRandMatrixSz(),InRandMatrixSz());
+      matrix.Resize(InRandMatrixSz(),InRandMatrixSz());
 
       for(uint32_t i = 0; i < matrix.GetRowCount(); i++)
       {

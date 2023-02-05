@@ -87,7 +87,7 @@ Fragment::Process()
 	layoutZond.SetDeltas(dx, dy);
 	//std::cout << "dx = " << dx << "\ndy = " << dy << std::endl;
 
-	for(auto it : legacyGeometryList)
+	/*for(auto it : legacyGeometryList)
 	{
 		layoutZond.ZondGeometry(it, layoutMatrix);
 	}
@@ -95,5 +95,5 @@ Fragment::Process()
 	for(auto it : includedItems)
 	{
 		layoutZond.ZondGeometry(it, layoutMatrix);
-	}
+	}*/
 }
