@@ -150,6 +150,30 @@ public:
 		std::string_view Hash);
 
 
+
+	/**
+	 * @brief Encoding and flushing matrix into file
+	 * 
+	 * @param FileName Name of file
+	 * @return true 
+	 * @return false 
+	 */
+	bool
+	FlushFile(
+		const std::string& FileName);
+
+	/**
+	 * @brief Reading file and hash decoding
+	 * 
+	 * @param FileName Name of file
+	 * @return true 
+	 * @return false 
+	 */
+	bool
+	ReadFile(
+		const std::string& FileName);
+
+
 public:
 
 	/**

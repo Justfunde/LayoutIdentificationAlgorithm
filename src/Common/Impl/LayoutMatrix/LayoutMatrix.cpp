@@ -4,6 +4,7 @@
 
 #include <string_view>
 #include <sstream>
+#include <fstream>
 #include <iostream>
 
 
@@ -275,4 +276,48 @@ LayoutMatrix::EncodeHash(
 	resultStr.insert(0,MatrixEncodingParamters::strBegin);
 	resultStr += MatrixEncodingParamters::strEnd;
 	return resultStr;
+}
+
+
+
+bool
+LayoutMatrix::ReadFile(
+	const std::string& FileName)
+{
+	if(FileName.empty()) { return false; }
+
+	std::fstream file(FileName, std::ios_base::in);
+ 
+	if(!file.is_open()) { return false; }
+
+	std::stringstream fileBuf;
+	fileBuf << file.rdbuf();
+
+	file.close();
+
+	auto tmpMatrix = LayoutMatrix::DecodeHash(fileBuf.str());
+
+	if(!tmpMatrix) { return false;}
+
+	*this = std::move(tmpMatrix);
+	return true;
+}
+
+
+
+bool
+LayoutMatrix::FlushFile(
+	const std::string& FileName)
+{
+	if(FileName.empty()) { return false; }
+
+	std::fstream file(FileName, std::ios_base::out | std::ios_base::trunc);
+ 
+	if(!file.is_open()) { return false; }
+
+	std::string hash = LayoutMatrix::EncodeHash(*this);
+
+	file.write(hash.c_str(), hash.length());
+	file.close();
+	return true;
 }
