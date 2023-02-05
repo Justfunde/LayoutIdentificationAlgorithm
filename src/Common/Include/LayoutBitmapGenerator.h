@@ -39,6 +39,10 @@ public:
 		const Coord& Min,
 		const Coord& Max);
 
+	void
+	SetLayerArray(
+		const std::vector <int16_t>& Layers);
+
 
 	bool
 	Process(

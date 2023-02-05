@@ -58,6 +58,7 @@ Vector2D<T>::Resize(
     size_t RowCnt,
     size_t ColCnt)
 {
+    data.clear();
     data.resize(RowCnt);
     for(size_t i = 0; i < RowCnt; ++i)
     {

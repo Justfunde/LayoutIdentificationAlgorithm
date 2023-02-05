@@ -270,6 +270,10 @@ LayoutMatrix::EncodeHash(
 	resultStr += MatrixEncodingParamters::sectionEncodeType;
 	resultStr += LayoutMatrix::EncodeEncodings(isRle,true);
 
+	std::string encodedSz = LayoutMatrix::EncodeSz(Matrix.GetRowCount(), Matrix.GetColumnCount());
+	//uint32_t colCnt = 0, rowCnt = 0;
+	//LayoutMatrix::DecodeSz(encodedSz,colCnt, rowCnt);
+
 	resultStr = Base64::Base64Encode(resultStr, Base64::EncodeType::radix64);
 	resultStr.reserve(MatrixEncodingParamters::strBegin.length() + resultStr.length() + MatrixEncodingParamters::strEnd.length());
 	

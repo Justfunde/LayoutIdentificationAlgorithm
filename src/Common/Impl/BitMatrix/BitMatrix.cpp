@@ -264,6 +264,7 @@ BitMatrix::Print() const noexcept
 		}
 		std::cout << "\n";
 	}
+	std::cout << "\n";
 }
 
 

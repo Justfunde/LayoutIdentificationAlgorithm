@@ -36,6 +36,8 @@ LayoutBitmapGenerator::Process(
 	//if (0 != RowCount % fragmentMatrix.RowCount()  || 0 != ColumnCount % fragmentMatrix.ColCount()) { return false; }
 
 	bitmap->Resize(RowCount, ColumnCount);
+	geometryList.clear();
+	legacyGeometryList.clear();
 
 	for (size_t i = 0; i < fragmentMatrix.RowCount(); i++)
 	{
@@ -360,6 +362,13 @@ LayoutBitmapGenerator::InitGeometryItems()
 			}
 		}
 	}
+}
+
+void
+LayoutBitmapGenerator::SetLayerArray(
+	const std::vector <int16_t>& Layers)
+{
+	preloadedData.layers = Layers;
 }
 
 
