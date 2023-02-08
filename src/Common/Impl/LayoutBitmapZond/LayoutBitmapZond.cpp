@@ -1,3 +1,13 @@
+/**
+ * @file LayoutBitmapZond.cpp
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Zond class and methods definition for matrix processing
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "Include/LayoutBitmapZond.h"
 
 #include <cstdint>
