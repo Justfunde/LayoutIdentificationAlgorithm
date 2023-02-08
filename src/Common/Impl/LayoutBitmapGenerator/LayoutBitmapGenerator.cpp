@@ -1,3 +1,13 @@
+/**
+ * @file LayoutBitmapGenerator.cpp
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Definition of methods for layout BitMatrix generation
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <stdexcept>
 
 #include "Include/LayoutBitmapGenerator.h"
@@ -8,9 +18,9 @@
 void
 LayoutBitmapGenerator::Init(
 	LayoutData* Data,
-	const std::vector <int16_t>& Layers,
-	const Coord& Min = { std::numeric_limits<int32_t>().min(), std::numeric_limits<int32_t>().min()},
-	const Coord& Max = { std::numeric_limits<int32_t>().max(), std::numeric_limits<int32_t>().max()})
+	const std::set <int16_t>& Layers,
+	const Coord& Min,
+	const Coord& Max)
 {
 	if (!Data || Layers.empty() || !fragmentMatrix) throw std::invalid_argument("Invalid LayoutBitmapGenerator initialization parameters");
 
@@ -66,7 +76,7 @@ LayoutBitmapGenerator::Process(
 	//InitFragmentsWorkspaces();
 	//DistributeGeometries();
 	//InitFragmentsIndicies();
-	FirstMatrixInit();
+	ZondMatrix();
 
 	//bitmap.print();
 	//cout << "\n\n\nFilling matrix:\n";
@@ -101,9 +111,9 @@ LayoutBitmapGenerator::GetMatrix() const
 }
 
 
-//First matrix initialization
 
-void LayoutBitmapGenerator::FirstMatrixInit()
+void
+LayoutBitmapGenerator::ZondMatrix()
 {
 	dx = СalcDelta(preloadedData.bitmapCoords.leftTop.x, preloadedData.bitmapCoords.rightBot.x,bitmap->GetRowCount());
 	dy = СalcDelta(preloadedData.bitmapCoords.leftTop.y, preloadedData.bitmapCoords.rightBot.y, bitmap->GetColumnCount());
@@ -123,7 +133,8 @@ void LayoutBitmapGenerator::FirstMatrixInit()
 
 //Fragment initialization
 
-void LayoutBitmapGenerator::InitFragmentsWorkspaces()
+void
+LayoutBitmapGenerator::InitFragmentsWorkspaces()
 {
 	for (size_t i = 0; i < fragmentMatrix.RowCount(); i++)
 	{
@@ -139,6 +150,7 @@ void LayoutBitmapGenerator::InitFragmentsWorkspaces()
 	}
 
 }
+
 
 uint32_t
 LayoutBitmapGenerator::GetFragmentIntersectionCnt(
@@ -160,7 +172,9 @@ LayoutBitmapGenerator::GetFragmentIntersectionCnt(
 	return intersectionCnt;
 }
 
-void LayoutBitmapGenerator::DistributeGeometries()
+
+void
+LayoutBitmapGenerator::DistributeGeometries()
 {
 	constexpr uint32_t intersectionCntEtalon = 2;
 	for(GeometryList::iterator geomIter = geometryList.begin(); geomIter != geometryList.end(); ++geomIter)
@@ -218,7 +232,9 @@ LayoutBitmapGenerator::InitFragmentsIndicies()
 
 //pushing items into fragments
 
-bool LayoutBitmapGenerator::pushRectangle(std::list<Geometry*>::const_iterator rect)
+bool
+LayoutBitmapGenerator::pushRectangle(
+	std::list<Geometry*>::const_iterator rect)
 {
 	const Coord& leftTop = (*rect)->coords[0];
 	const Coord& rightBot = (*rect)->coords[2];
@@ -246,7 +262,11 @@ bool LayoutBitmapGenerator::pushRectangle(std::list<Geometry*>::const_iterator r
 	}*/
 	return false;
 }
-bool LayoutBitmapGenerator::pushRectangle(std::list<std::shared_ptr<Geometry>>::const_iterator rect)
+
+
+bool
+LayoutBitmapGenerator::pushRectangle(
+	std::list<std::shared_ptr<Geometry>>::const_iterator rect)
 {
 	const Coord& leftTop = (*rect)->coords[0];
 	const Coord& rightBot = (*rect)->coords[2];
@@ -350,174 +370,40 @@ LayoutBitmapGenerator::InitGeometryItems()
 {
 	for (auto& currLib : preloadedData.data->libraries)
 	{
-		for (size_t j = 0; j < preloadedData.layers.size(); j++)
+		for (auto& currLayer: currLib->layers)
 		{
-			for (auto& currLayer: currLib->layers)
+			if (preloadedData.layers.count(currLayer.layer))
 			{
-				if (preloadedData.layers[j] == currLayer.layer)
-				{
-					ProcessGeometries(currLayer.geometries);
-					break;
-				}
+				ProcessGeometries(currLayer.geometries);
+				break;
 			}
 		}
 	}
 }
 
+
 void
 LayoutBitmapGenerator::SetLayerArray(
-	const std::vector <int16_t>& Layers)
+	const std::set <int16_t>& Layers)
 {
 	preloadedData.layers = Layers;
 }
 
 
-//utility methods
-
-
-
 void LayoutBitmapGenerator::Reset()
 {
 	preloadedData.data = nullptr;
+	preloadedData.bitmapCoords.leftTop = preloadedData.bitmapCoords.leftTop = {0, 0};
+	preloadedData.layers.clear();
+
+	bitmap.reset();
+	geometryList.clear();
+	legacyGeometryList.clear();
+	dx = dy = 0;
 	fragmentMatrix.Reset();
 }
 
 
 //Constructors and destructors
 
-LayoutBitmapGenerator::~LayoutBitmapGenerator()
-{
-	Reset();
-}
-
-
-void LayoutBitmapGenerator::ZondRectangle(Geometry* rect)
-{
-	const Coord& leftTop = rect->coords[0];
-	const Coord& rightBot = rect->coords[2];
-	//printf("\ntype:rectangle\nleftTop = (%d,%d)\nrightBot = (%d,%d)\n", leftTop.x, leftTop.y, rightBot.x, rightBot.y);
-	//Theoretical indicies
-	double i_rect_begin;
-	double i_rect_end;
-	double j_rect_begin;
-	double j_rect_end;
-	
-	j_rect_begin = (leftTop.x - preloadedData.bitmapCoords.leftTop.x) / dx;
-
-	j_rect_end = (rightBot.x - preloadedData.bitmapCoords.leftTop.x) / dx;
-
-	i_rect_begin = (preloadedData.bitmapCoords.leftTop.y - leftTop.y) / dy;
-
-	i_rect_end = (preloadedData.bitmapCoords.leftTop.y - rightBot.y) / dy;
-
-	//std::cout << "\Indicies before normalization:\n";
-	//printf("begin = [%.2f,%.2f]\t end = [%.2f,%.2f]\n", i_rect_begin, j_rect_begin, i_rect_end, j_rect_end);
-
-	//std::cout << "Indicies after normalization\n";
-	//Indicies boundIndicies{ 0,bitmap.get_i_size() - 1,0,bitmap.get_j_size() - 1 };
-	//Indicies normalIndicies = Indicies::normIndicies(i_rect_begin, i_rect_end, dy, j_rect_begin, j_rect_end, dx, boundIndicies);
-	//printf("begin = [%d,%d]\t end = [%d,%d]\n", normalIndicies.iBegin, normalIndicies.jBegin, normalIndicies.iEnd, normalIndicies.jEnd);
-
-	/*for (size_t i = normalIndicies.iBegin; i <= normalIndicies.iEnd && i >= boundIndicies.iBegin && i <= boundIndicies.iEnd; i++)
-		for (size_t j = normalIndicies.jBegin; j <= normalIndicies.jEnd && j >= boundIndicies.jBegin && j <= boundIndicies.jEnd; j++)
-		{
-			try {
-				bitmap.set(i, j, 1);
-			}
-			catch (...)
-			{
-				std::cout << "err";
-			}
-		}*/
-
-	//std::cout << std::endl << std::endl;
-}
-
-/*Indicies Indicies::normIndicies(double iBegin, double iEnd, double dy, double jBegin, double jEnd, double dx, const Indicies& boundIndicies)
-{
-	//checking possible situations
-	constexpr double mid = 0.5;
-	const double iError = eps * dy;
-	const double jError = eps * dx;
-	Indicies normalIndicies;
-
-
-	//calculating i part
-	if (static_cast<int32_t>(iEnd) - static_cast<int32_t>(iBegin) == 0)
-	{
-
-		const double iBeginMantissa = iBegin - trunc(iBegin);
-		const double iEndMantissa = iEnd - trunc(iEnd);
-		if ((iBeginMantissa >= mid - iError && iBeginMantissa <= mid + iError) || (iEndMantissa >= mid - iError && iEndMantissa <= mid + iError) ||
-			(iBeginMantissa <= mid + iError && iEndMantissa >= mid - iError))
-		{
-			normalIndicies.iBegin = static_cast<size_t>(iBegin);
-			normalIndicies.iEnd = static_cast<size_t>(iBegin);
-		}
-		else {
-			normalIndicies.iBegin = 1;
-			normalIndicies.iEnd = 0;
-		}
-
-	}
-	else {
-		if (iBegin <= boundIndicies.iBegin)
-			normalIndicies.iBegin = boundIndicies.iBegin;
-		else {
-			const double iBeginMantissa = iBegin - trunc(iBegin);
-			if (mid + iError >= iBeginMantissa)
-				normalIndicies.iBegin = static_cast<size_t>(iBegin);
-			else normalIndicies.iBegin = static_cast<size_t>(iBegin) + 1;
-		}
-		if (iEnd >= boundIndicies.iEnd)
-			normalIndicies.iEnd = boundIndicies.iEnd;
-		else
-		{
-			const double iEndMantissa = iEnd - trunc(iEnd);
-			if (mid - iError <= iEndMantissa)
-				normalIndicies.iEnd = static_cast<size_t>(round(iEnd));
-			else normalIndicies.iEnd = static_cast<size_t>(iEnd) - 1;
-		}
-	}
-
-	//calculating j part
-
-	if (static_cast<int32_t>(jEnd) - static_cast<int32_t>(jBegin) == 0)
-	{
-
-		const double jBeginMantissa = jBegin - trunc(jBegin);
-		const double jEndMantissa = jEnd - trunc(jEnd);
-		if ((jBeginMantissa >= mid - jError && jBeginMantissa <= mid + jError) || (jEndMantissa >= mid - jError && jEndMantissa <= mid + jError) ||
-			(jBeginMantissa <= mid + jError && jEndMantissa >= mid - jError))
-		{
-			normalIndicies.jBegin = static_cast<size_t>(jBegin);
-			normalIndicies.jEnd = static_cast<size_t>(jBegin);
-		}
-		else {
-			normalIndicies.jBegin = 1;
-			normalIndicies.jEnd = 0;
-		}
-
-	}
-	else {
-		if (jBegin <= boundIndicies.jBegin)
-			normalIndicies.jBegin = boundIndicies.jBegin;
-		else {
-			const double jBeginMantissa = jBegin - trunc(jBegin);
-			if (mid + jError >= jBeginMantissa)
-				normalIndicies.jBegin = static_cast<size_t>(jBegin);
-			else normalIndicies.jBegin = static_cast<size_t>(jBegin) + 1;
-		}
-		if (jEnd >= boundIndicies.jEnd)
-			normalIndicies.jEnd = boundIndicies.jEnd;
-		else
-		{
-			const double jEndMantissa = jEnd - trunc(jEnd);
-			if (mid - jError <= jEndMantissa)
-				normalIndicies.jEnd = static_cast<size_t>(round(jEnd));
-			else normalIndicies.jEnd = static_cast<size_t>(jEnd) - 1;
-		}
-	}
-
-	return normalIndicies;
-}*/
+LayoutBitmapGenerator::~LayoutBitmapGenerator(){ }

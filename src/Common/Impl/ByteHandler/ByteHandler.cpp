@@ -1,11 +1,20 @@
-﻿#include "Include/ByteHandler.h"
+﻿/**
+ * @file ByteHandler.cpp
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Definition of functions working operating bits in byte
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+#include "Include/ByteHandler.h"
 
 #include <stdexcept>
 #include <limits>
 
 
 #define MAX_BIT_POS(ArrSz) (g_bitsInByte * (ArrSz) - 1)
-#define BIT(n) (1U << (n))
 
 
 constexpr size_t g_ptrSz = sizeof(void*); 

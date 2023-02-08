@@ -1,3 +1,13 @@
+/**
+ * @file Crc32.h
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Crc32 hash function declaration
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #ifndef __CRC_32_H__
 #define __CRC_32_H__
 

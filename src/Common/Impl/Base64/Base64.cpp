@@ -1,6 +1,6 @@
 ﻿/**
 * @file     Base64.c
-* @brief    Function definition for base64 algh job
+* @brief    Function definition for base64 algh
 */
 
 #include "Include/Crc32.h"

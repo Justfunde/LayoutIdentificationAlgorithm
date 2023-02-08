@@ -1,3 +1,13 @@
+/**
+ * @file BitMatrix.cpp
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief BitMatrix methods definition
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "Include/BitMatrix.h"
 
 #include <iostream>

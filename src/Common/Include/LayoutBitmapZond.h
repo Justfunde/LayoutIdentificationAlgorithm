@@ -1,3 +1,13 @@
+/**
+ * @file LayoutBitmapZond.h
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Header 
+ * @version 0.1
+ * @date 2023-02-08
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #ifndef __LAYOUT_BITMAP_ZOND_H__
 #define __LAYOUT_BITMAP_ZOND_H__
 #include <cstddef>
