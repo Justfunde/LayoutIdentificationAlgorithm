@@ -396,7 +396,6 @@ void LayoutBitmapGenerator::Reset()
 	preloadedData.bitmapCoords.leftTop = preloadedData.bitmapCoords.leftTop = {0, 0};
 	preloadedData.layers.clear();
 
-	bitmap.reset();
 	geometryList.clear();
 	legacyGeometryList.clear();
 	dx = dy = 0;
