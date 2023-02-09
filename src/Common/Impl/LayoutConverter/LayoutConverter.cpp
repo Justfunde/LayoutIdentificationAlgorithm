@@ -1,15 +1,30 @@
+/**
+ * @file LayoutConverter.cpp
+ * @author Mikhail Kotlyarov  (m.kotlyarov@elvis.ru)
+ * @brief Function definition for layout object convertions
+ * @version 0.1
+ * @date 2023-02-09
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "Include/LayoutConverter.h"
 
-using LineCoordinated = std::pair<Coord, Coord>;
+using LineCoordinates = std::pair<Coord, Coord>;
 
-enum class LineOrientation {
+/*! Enum to define line orientation*/
+enum class 
+LineOrientation 
+{
 	undefined = 0,
     horizontal,
 	vertical
 };
 
 
-enum class PathElemPos
+/*! Enum to define path point position*/
+enum class 
+PathElemPos
 {
 	undefined = 0,
 	begin,
@@ -17,9 +32,10 @@ enum class PathElemPos
 	end
 };
 
+
 static
 int32_t
-calcDelta(
+InCalcDelta(
    int32_t first,
    int32_t second)
 {
@@ -27,6 +43,14 @@ calcDelta(
 }
 
 
+/**
+ * @brief Filling box object
+ * 
+ * @param Box2Fill Box to fill
+ * @param LeftBot Leftbot box coord
+ * @param RightTop Rightbot box coord
+ * @param LayerNum Layer number of box
+ */
 static
 void 
 InFillBox(
@@ -36,8 +60,8 @@ InFillBox(
    int16_t LayerNum)
 {
     Coord currCoord;
-    int32_t dx = calcDelta(LeftBot.x, RightTop.x);
-    int32_t dy = calcDelta(LeftBot.y, RightTop.y);
+    int32_t dx = InCalcDelta(LeftBot.x, RightTop.x);
+    int32_t dy = InCalcDelta(LeftBot.y, RightTop.y);
 
     //Left top
     currCoord.x = RightTop.x - dx;
@@ -78,6 +102,12 @@ InFillBox(
 }
 
 
+/**
+ * @brief Getter of obj type
+ * 
+ * @param Obj Geometry object
+ * @return GeometryType 
+ */
 static
 GeometryType
 InGetType(const Geometry* Obj)
@@ -85,9 +115,15 @@ InGetType(const Geometry* Obj)
     return (nullptr == Obj) ? GeometryType::undefined : Obj->type;
 }
 
+/**
+ * @brief Get line orientation(parralel to x or y axis)
+ * 
+ * @param LineCoord 
+ * @return LineOrientation 
+ */
 LineOrientation
 InGetOrientation(
-    const LineCoordinated& LineCoord)
+    const LineCoordinates& LineCoord)
 {
 	if (LineCoord.first.x == LineCoord.second.x && LineCoord.first.y == LineCoord.second.y) { return LineOrientation::undefined; }
 	if (LineCoord.first.x == LineCoord.second.x) { return LineOrientation::vertical; }
@@ -95,6 +131,12 @@ InGetOrientation(
 }
 
 
+/**
+ * @brief Add coordinate to all coordinates of geometry
+ * 
+ * @param pGeometry Pointer to geometry obj
+ * @param AdditValue Additional coord value
+ */
 void 
 InAddCoordValue(
     GeometryPtr pGeometry,
@@ -112,8 +154,17 @@ InAddCoordValue(
 }
 
 
+/**
+ * @brief Calculate bounding angle coords from line and width
+ * 
+ * @param BeginLine Begin line coord
+ * @param EndLine   End line coord
+ * @param HalfWidth Half of path width
+ * @param Pos       Position of path part
+ * @return std::pair<Coord, Coord> 
+ */
 std::pair<Coord, Coord>
-InGetRectAngles(
+InCalcRectAngles(
     const Coord& BeginLine,
     const Coord& EndLine,
     int32_t HalfWidth,
@@ -254,7 +305,7 @@ GeometryConverter::PathToRectList(const Geometry* path)
         auto tempBox = std::shared_ptr<Rectangle>(new Rectangle);
 		tempBox->coords.resize(coordCount);
 
-		auto angleCoords = InGetRectAngles(path->coords[i], path->coords[i + 1], halfWidth, pos);//lefttop and rightBot
+		auto angleCoords = InCalcRectAngles(path->coords[i], path->coords[i + 1], halfWidth, pos);//lefttop and rightBot
 
         InFillBox(tempBox, { angleCoords.first.x, angleCoords.second.y}, { angleCoords.second.x, angleCoords.first.y}, pPath->layer);
 		boxes.push_back(tempBox);

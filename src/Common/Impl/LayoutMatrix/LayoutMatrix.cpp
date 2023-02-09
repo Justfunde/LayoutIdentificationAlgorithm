@@ -8,14 +8,15 @@
 #include <iostream>
 
 
+/*! Parameters for matrix encoding*/
 namespace MatrixEncodingParamters
 {
-	constexpr std::string_view sectionParameters = "__PARAMETERS__";
-	constexpr std::string_view sectionSize = "__SIZE__";
-	constexpr std::string_view sectionEncodeType = "__ENCODE_TYPE__";
+	constexpr std::string_view sectionParameters = "__PARAMETERS__"; ///< Begin section parameters
+	constexpr std::string_view sectionSize = "__SIZE__";///< Begin section encoding type
+	constexpr std::string_view sectionEncodeType = "__ENCODE_TYPE__"; ///< Begin section of used encodings
 
-	constexpr std::string_view strBegin = "---------BEGIN_MATRIX---------\r\n";
-	constexpr std::string_view strEnd = "\r\n---------END_MATRIX---------";
+	constexpr std::string_view strBegin = "---------BEGIN_MATRIX---------\r\n"; ///< Begin matrix encoding section(begin part)
+	constexpr std::string_view strEnd = "\r\n---------END_MATRIX---------"; ///< End matrix encoding section(end part)
 
 	const size_t parametersLen = sectionParameters.length() + sectionSize.length() + 24 + sectionEncodeType.length() + sizeof(char);
 	constexpr uint8_t rleBitPos = 1;
