@@ -33,17 +33,24 @@ private:
     class Proxy
     {
         private:
-        std::vector<Type> constVec;///< Data for const operator[]
         std::vector<Type>& vec;///< Data ref for operator[] 
         
         public:
         Proxy(std::vector<Type>& Vec) :vec(Vec){ }
-        //todo: Remove crutch
-        Proxy(const std::vector<Type>& Vec) : constVec(Vec),vec(constVec) {}
 
 
         Type& operator[](size_t Index)  { return vec[Index];}
-        const Type& operator[](size_t Index) const { return constVec[Index];}
+    };
+
+    class ConstProxy
+    {
+        private:
+        const std::vector<Type>& vec;
+
+        public:
+        ConstProxy(const std::vector<Type>& Vec) : vec(Vec) { }
+
+        const Type& operator[](size_t Index) const { return vec[Index];}
     };
 
 public:
@@ -55,7 +62,7 @@ public:
     Vector2D();
 
     /**
-     * @brief Construct a new Vector 2 D object
+     * @brief Construct a new Vector 2D object
      * 
      * @param RowCnt Row count
      * @param ColCnt Column count
@@ -122,11 +129,11 @@ public:
      * @return Proxy Proxy object for [][]
      */
     const
-    Proxy
+    ConstProxy
     operator[](
         size_t Index) const 
     {
-        return Proxy(data[Index]);
+        return ConstProxy(data[Index]);
     }
 
 public:
@@ -171,7 +178,6 @@ public:
      * 
      * @return size_t  Row count
      */
-    inline
     size_t
     RowCount() const;
 
@@ -180,7 +186,6 @@ public:
      * 
      * @return size_t Column count
      */
-    inline
     size_t
     ColCount() const;
 

@@ -111,7 +111,7 @@ Vector2D<T>::RowCount() const
     return data.size();
 }
 
-
+    
 template <typename T>
 inline
 size_t

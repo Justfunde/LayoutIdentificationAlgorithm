@@ -275,7 +275,6 @@ public:
 	 * @return double 
 	 */
 	static
-	inline
 	double
 	Compare(
 		const BitMatrix& FirstMatrix,
