@@ -1,5 +1,6 @@
 #include "Include/TestModule.h"
 #include "Include/LayoutReader.hpp"
+#include "Include/LayoutPrinter.h"
 
 #include <string>
 #include <vector>
@@ -32,12 +33,18 @@ Test__MskReader()
    {
       std::cout << it.layer << std::endl;
    }
-   TEST_ASSERT(layout.libraries[0]->layers.size(), etalonLayers.size(), !=)
 
+   for (auto it : layout.libraries[0]->elements[0]->geometries)
+   {
+      LayoutPrinter::PrintGeometry(it);
+      std::cout << std::endl;
+   }
+   TEST_ASSERT(layout.libraries[0]->layers.size(), etalonLayers.size(), !=)
    const Element* pElem = layout.libraries[0]->elements[0];
    TEST_ASSERT(pElem->name, elementNameEtalon, !=);
    TEST_ASSERT(pElem->geometries.size(), geometriesCntEtalon, !=)
 
+   
    for(size_t i = 0; i < etalonLayers.size(); i++)
    {
       TEST_ASSERT(layout.libraries[0]->layers[i].layer, etalonLayers[i], !=);

@@ -10,6 +10,8 @@
  */
 #include "Include/LayoutConverter.h"
 
+#include <stdexcept>
+
 using LineCoordinates = std::pair<Coord, Coord>;
 
 /*! Enum to define line orientation*/
@@ -42,6 +44,18 @@ InCalcDelta(
    return second - first;
 }
 
+/**
+ * @brief Getter of obj type
+ * 
+ * @param Obj Geometry object
+ * @return GeometryType 
+ */
+static
+GeometryType
+InGetType(const Geometry* Obj)
+{
+    return (nullptr == Obj) ? GeometryType::undefined : Obj->type;
+}
 
 /**
  * @brief Filling box object
@@ -59,12 +73,15 @@ InFillBox(
    const Coord& RightTop,
    int16_t LayerNum)
 {
+	if(nullptr == Box2Fill || InGetType(Box2Fill.get()) != GeometryType::rectangle) { throw std::invalid_argument("Invalid geometry type");}
+
+
     Coord currCoord;
-    int32_t dx = InCalcDelta(LeftBot.x, RightTop.x);
-    int32_t dy = InCalcDelta(LeftBot.y, RightTop.y);
+    int32_t width = InCalcDelta(LeftBot.x, RightTop.x);
+    int32_t height = InCalcDelta(LeftBot.y, RightTop.y);
 
     //Left top
-    currCoord.x = RightTop.x - dx;
+    currCoord.x = RightTop.x - width;
     currCoord.y = RightTop.y;
     Box2Fill->coords.push_back(currCoord);
     
@@ -73,16 +90,16 @@ InFillBox(
 
     //Right bot
     currCoord.x = RightTop.x;
-    currCoord.y = RightTop.y - dy;
+    currCoord.y = RightTop.y - height;
     Box2Fill->coords.push_back(currCoord);
 
     //Left bot
-    currCoord.x = RightTop.x - dx;
-    currCoord.y = RightTop.y - dy;
+    currCoord.x = RightTop.x - width;
+    currCoord.y = RightTop.y - height;
     Box2Fill->coords.push_back(currCoord);
 
     //Left top
-    currCoord.x = RightTop.x - dx;
+    currCoord.x = RightTop.x - width;
     currCoord.y = RightTop.y;
     Box2Fill->coords.push_back(currCoord);
 
@@ -102,18 +119,7 @@ InFillBox(
 }
 
 
-/**
- * @brief Getter of obj type
- * 
- * @param Obj Geometry object
- * @return GeometryType 
- */
-static
-GeometryType
-InGetType(const Geometry* Obj)
-{
-    return (nullptr == Obj) ? GeometryType::undefined : Obj->type;
-}
+
 
 /**
  * @brief Get line orientation(parralel to x or y axis)
@@ -170,8 +176,7 @@ InCalcRectAngles(
     int32_t HalfWidth,
     PathElemPos Pos)
 {
-	if (Pos == PathElemPos::undefined)
-		return std::make_pair(Coord(), Coord());
+	if (Pos == PathElemPos::undefined) { return std::make_pair(Coord(), Coord()); }
 	Coord leftTop;
 	Coord rightBot;
 
@@ -287,24 +292,20 @@ InCalcRectAngles(
 GeometryList
 GeometryConverter::PathToRectList(const Geometry* path)
 {
-    GeometryList boxes;
-    if(GeometryType::path !=  InGetType(path)) { return boxes;}
+    if(GeometryType::path !=  InGetType(path)) { throw std::invalid_argument("Invalid geometry type");}
 
+    GeometryList boxes;
     const Path* pPath = static_cast<const Path*>(path);
-    constexpr size_t coordCount = 5;
+    constexpr size_t rectCoordCount = 5;
 	const int32_t halfWidth = pPath->width / 2;
 
-	PathElemPos pos = PathElemPos::undefined;
+	PathElemPos pos = PathElemPos::begin;
 	for (size_t i = 0; i < pPath->coords.size() - 1; i++)
 	{
-
-		if (0 == i) { pos = PathElemPos::begin; }
-		else if (pPath->coords.size() - 2 == i  ) { pos = PathElemPos::end; }
+		if (pPath->coords.size() - 2 == i  ) { pos = PathElemPos::end; }
 		else { pos = PathElemPos::mid; }
 
         auto tempBox = std::shared_ptr<Rectangle>(new Rectangle);
-		tempBox->coords.resize(coordCount);
-
 		auto angleCoords = InCalcRectAngles(path->coords[i], path->coords[i + 1], halfWidth, pos);//lefttop and rightBot
 
         InFillBox(tempBox, { angleCoords.first.x, angleCoords.second.y}, { angleCoords.second.x, angleCoords.first.y}, pPath->layer);
